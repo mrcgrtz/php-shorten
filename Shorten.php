@@ -14,12 +14,14 @@
  * @example   example.html.php
  * @link      https://github.com/Dreamseer/php-shorten/
  * @author    Marc Görtz (http://marcgoertz.de/)
- * @license   WTFPL 2.0, http://sam.zoy.org/wtfpl/
- * @copyright Copyleft (c) 2013, Marc Görtz
- * @version   1.0.0
+ * @license   MIT License
+ * @copyright Copyright (c) 2011-2013, Marc Görtz
+ * @version   1.1.0
  */
 class Shorten
 {
+
+	const VERSION = '1.1.0';
 
 	/**
 	 * Safely truncate text containing markup.
