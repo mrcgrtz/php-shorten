@@ -25,6 +25,7 @@ Output:
  * String `$appendix`: Text added after truncated text (default: '…')
  * Boolean `$appendixInside`: Add appendix to last content in tags, increases $length by 1 (default: false)
  * Boolean `$wordsafe`: Wordsafe truncation (default: false)
+ * String `$delimiter`: Delimiter for wordsafe truncation (default: ' ')
 
 ## License
 

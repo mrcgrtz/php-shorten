@@ -31,9 +31,10 @@ class Shorten
 	 * @param   string $appendix       text added after truncated text (default: '…')
 	 * @param   boold  $appendixInside add appendix to last content in tags, increases $length by 1 (default: false)
 	 * @param   boold  $wordsafe       wordsafe truncation (default: false)
+	 * @param   string $delimiter      delimiter for wordsafe truncation (default: ' ')
 	 * @return  string                 truncated markup
 	 */
-	public function truncateMarkup($markup, $length = 400, $appendix = '…', $appendixInside = FALSE, $wordsafe = FALSE)
+	public function truncateMarkup($markup, $length = 400, $appendix = '…', $appendixInside = FALSE, $wordsafe = FALSE, $delimiter = ' ')
 	{
 		$truncated = '';
 		$lengthOutput = 0;
@@ -97,8 +98,8 @@ class Shorten
 
 		// if the words shouldn't be cut in the middle...
 		if ($wordsafe) {
-			// ... search the last occurance of a space...
-			$spacepos = strrpos($truncated, ' ');
+			// ... search the last occurance of the delimiter...
+			$spacepos = strrpos($truncated, $delimiter);
 			if (isset($spacepos)) {
 				// ... and cut the text in this position
 				$truncated = substr($truncated, 0, $spacepos);
