@@ -15,13 +15,13 @@
  * @link      https://github.com/Dreamseer/php-shorten/
  * @author    Marc Görtz (http://marcgoertz.de/)
  * @license   MIT License
- * @copyright Copyright (c) 2011-2013, Marc Görtz
- * @version   1.1.0
+ * @copyright Copyright (c) 2011-2015, Marc Görtz
+ * @version   1.2.0
  */
 class Shorten
 {
 
-	const VERSION = '1.1.0';
+	const VERSION = '1.2.0';
 
 	/**
 	 * Safely truncate text containing markup.
