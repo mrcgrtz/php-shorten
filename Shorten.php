@@ -29,8 +29,8 @@ class Shorten
 	 * @param   string $markup         text containing markup
 	 * @param   int    $length         maximum length of truncated text (default: 400)
 	 * @param   string $appendix       text added after truncated text (default: '…')
-	 * @param   boold  $appendixInside add appendix to last content in tags, increases $length by 1 (default: false)
-	 * @param   boold  $wordsafe       wordsafe truncation (default: false)
+	 * @param   bool   $appendixInside add appendix to last content in tags, increases $length by 1 (default: false)
+	 * @param   bool   $wordsafe       wordsafe truncation (default: false)
 	 * @param   string $delimiter      delimiter for wordsafe truncation (default: ' ')
 	 * @return  string                 truncated markup
 	 */
