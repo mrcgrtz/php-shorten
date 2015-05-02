@@ -16,12 +16,12 @@
  * @author    Marc Görtz (http://marcgoertz.de/)
  * @license   MIT License
  * @copyright Copyright (c) 2011-2015, Marc Görtz
- * @version   1.2.0
+ * @version   1.3.0
  */
 class Shorten
 {
 
-	const VERSION = '1.2.0';
+	const VERSION = '1.3.0';
 
 	/**
 	 * Safely truncate text containing markup.
