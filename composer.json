@@ -1,24 +1,24 @@
 {
-	"name": "marcgoertz/shorten",
-	"version": "1.3.0",
-	"description": "Provides truncation functions.",
-	"homepage": "https://github.com/Dreamseer/php-shorten",
-	"keywords": [
-		"truncation",
-		"shorten",
-		"markup"
-	],
-	"license": "MIT",
-	"authors": [
-		{
-			"name": "Marc Görtz",
-			"email": "mail@marcgoertz.de",
-			"homepage": "http://marcgoertz.de/"
-		}
-	],
-    "autoload": {
-      "psr-4": {"Marcgoertz\\Shorten\\": ""}
-    },
-    "minimum-stability": "dev",
-	"require": {}
+  "name": "marcgoertz/shorten",
+  "version": "2.0.0",
+  "description": "Provides truncation functions.",
+  "homepage": "https://github.com/Dreamseer/php-shorten",
+  "keywords": [
+    "truncation",
+    "shorten",
+    "markup"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Marc Görtz",
+      "email": "mail@marcgoertz.de",
+      "homepage": "https://marcgoertz.de/"
+    }
+  ],
+  "autoload": {
+    "psr-4": {"Marcgoertz\\Shorten\\": ""}
+  },
+  "minimum-stability": "dev",
+  "require": {}
 }
