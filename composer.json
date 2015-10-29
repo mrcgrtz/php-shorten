@@ -16,6 +16,9 @@
 			"homepage": "http://marcgoertz.de/"
 		}
 	],
-	"minimum-stability": "dev",
+    "autoload": {
+      "psr-4": {"Marcgoertz\\Shorten\\": ""}
+    },
+    "minimum-stability": "dev",
 	"require": {}
 }
