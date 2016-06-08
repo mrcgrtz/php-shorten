@@ -16,7 +16,7 @@
  * @author    Marc Görtz (http://marcgoertz.de/)
  * @license   MIT License
  * @copyright Copyright (c) 2011-2015, Marc Görtz
- * @version   1.3.0
+ * @version   2.0.0
  */
 namespace Marcgoertz\Shorten;
 
