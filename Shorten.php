@@ -5,7 +5,7 @@
  * <code>
  * <?php
  * require_once('Shorten.php');
- * $shorten = new Shorten;
+ * $shorten = new \Marcgoertz\Shorten\Shorten;
  * $shorten->truncateMarkup('<a href="http://example.com/">Go to example site</a>', 10);
  * ?>
  * </code>
@@ -42,6 +42,11 @@ class Shorten
 		$lengthOutput = 0;
 		$position = 0;
 		$tags = array();
+
+		// just return the markup if text does not need be truncated
+		if (strlen(trim(strip_tags($markup))) <= $length) {
+			return $markup;
+		}
 
 		// to avoid UTF-8 multibyte glitches we need entities, but no special characters for tags or existing entities
 		$markup = str_replace(array(
