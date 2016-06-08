@@ -16,14 +16,14 @@
  * @author    Marc Görtz (http://marcgoertz.de/)
  * @license   MIT License
  * @copyright Copyright (c) 2011-2015, Marc Görtz
- * @version   2.0.0
+ * @version   2.1.0
  */
 namespace Marcgoertz\Shorten;
 
 class Shorten
 {
 
-	const VERSION = '2.0.0';
+	const VERSION = '2.1.0';
 
 	/**
 	 * Safely truncate text containing markup.
