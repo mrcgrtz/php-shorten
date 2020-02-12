@@ -20,5 +20,8 @@
     "psr-4": {"Marcgoertz\\Shorten\\": ""}
   },
   "minimum-stability": "dev",
-  "require": {}
+  "require": {},
+  "require-dev": {
+    "phpunit/phpunit": "^9"
+  }
 }
