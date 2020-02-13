@@ -37,6 +37,14 @@ final class ShortenTest extends TestCase
             Shorten::truncateMarkup('Lorem ipsum <b>dolor</b> sit amet', 26)
         );
     }
+
+    public function testTruncatesMarkupWithUnicodeChars(): void
+    {
+        $this->assertEquals(
+            '<p>PHP élé…</p>',
+            Shorten::truncateMarkup('<p>PHP éléphant</p>', 7, '…', TRUE)
+        );
+    }
 }
 
 
