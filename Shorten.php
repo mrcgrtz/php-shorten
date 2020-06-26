@@ -125,6 +125,9 @@ final class Shorten
             $truncated .= sprintf('</%s>', array_pop($tags));
         }
 
+        // decode entities
+        $truncated = html_entity_decode($truncated, ENT_COMPAT, 'UTF-8');
+
         if ($appendixInside) {
             return $truncated;
         } else {
