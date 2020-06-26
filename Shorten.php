@@ -43,7 +43,7 @@ final class Shorten
         $truncated = '';
         $lengthOutput = 0;
         $position = 0;
-        $tags = array();
+        $tags = [];
 
         // just return the markup if text does not need be truncated
         if (strlen(trim(strip_tags($markup))) <= $length) {
@@ -51,11 +51,11 @@ final class Shorten
         }
 
         // to avoid UTF-8 multibyte glitches we need entities, but no special characters for tags or existing entities
-        $markup = str_replace(array(
+        $markup = str_replace([
             '&lt;', '&gt;', '&amp;',
-        ), array(
+        ], [
             '<', '>', '&',
-        ), htmlentities($markup, ENT_NOQUOTES, 'UTF-8'));
+        ], htmlentities($markup, ENT_NOQUOTES, 'UTF-8'));
 
         // loop thru text
         while ($lengthOutput < $length && preg_match('{</?([a-z]+)[^>]*>|&#?[a-zA-Z0-9]+;}', $markup, $match, PREG_OFFSET_CAPTURE, $position)) {
