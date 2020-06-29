@@ -1,26 +1,35 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Marcgoertz\Shorten;
 
 final class Shorten
 {
-    const ENTITIES_PATTERN = '/&#?[a-zA-Z0-9]+;/i';
-    const TAGS_AND_ENTITIES_PATTERN = '/<\/?([a-z]+)[^>]*>|&#?[a-zA-Z0-9]+;/i';
+    private const ENTITIES_PATTERN = '/&#?[a-zA-Z0-9]+;/i';
+    private const TAGS_AND_ENTITIES_PATTERN = '/<\/?([a-z]+)[^>]*>|&#?[a-zA-Z0-9]+;/i';
 
     /**
      * Safely truncate text containing markup.
      *
-     * @param  string $markup         text containing markup
-     * @param  int    $length         maximum length of truncated text
-     * @param  string $appendix       text added after truncated text
-     * @param  bool   $appendixInside add appendix to last content in tags, increases $length by 1
-     * @param  bool   $wordsafe       wordsafe truncation
-     * @param  string $delimiter      delimiter for wordsafe truncation
-     * @return string                 truncated markup
+     * @param string $markup         text containing markup
+     * @param int    $length         maximum length of truncated text
+     * @param string $appendix       text added after truncated text
+     * @param bool   $appendixInside add appendix to last content in tags,
+     *                               increases $length by 1
+     * @param bool   $wordsafe       wordsafe truncation
+     * @param string $delimiter      delimiter for wordsafe truncation
+     *
+     * @return string                truncated markup
      */
-    public function truncateMarkup(string $markup, int $length = 400, string $appendix = '…', bool $appendixInside = false, bool $wordsafe = false, string $delimiter = ' '): string
-    {
+    public function truncateMarkup(
+        string $markup,
+        int $length = 400,
+        string $appendix = '…',
+        bool $appendixInside = false,
+        bool $wordsafe = false,
+        string $delimiter = ' '
+    ): string {
         $truncated = '';
         $lengthOutput = 0;
         $position = 0;
@@ -34,15 +43,25 @@ final class Shorten
             return $markup;
         }
 
-        // to avoid UTF-8 multibyte glitches we need entities, but no special characters for tags or existing entities
-        $markup = str_replace([
-            '&lt;', '&gt;', '&amp;',
-        ], [
-            '<', '>', '&',
-        ], htmlentities($markup, ENT_NOQUOTES, 'UTF-8'));
+        // to avoid UTF-8 multibyte glitches we need entities,
+        // but no special characters for tags or existing entities
+        $markup = str_replace(
+            ['&lt;', '&gt;', '&amp;'],
+            ['<', '>', '&'],
+            htmlentities($markup, ENT_NOQUOTES, 'UTF-8')
+        );
 
         // loop thru text
-        while ($lengthOutput < $length && preg_match(self::TAGS_AND_ENTITIES_PATTERN, $markup, $match, PREG_OFFSET_CAPTURE, $position)) {
+        while (
+            $lengthOutput < $length &&
+            preg_match(
+                self::TAGS_AND_ENTITIES_PATTERN,
+                $markup,
+                $match,
+                PREG_OFFSET_CAPTURE,
+                $position
+            )
+        ) {
             list($tag, $positionTag) = $match[0];
 
             // add text leading up to the tag or entity
@@ -70,7 +89,7 @@ final class Shorten
                     // check that tags are properly nested
                     assert($openingTag === $tagName);
                     $truncated .= $tag;
-                } else if ($tag[mb_strlen($tag) - 2] === '/') {
+                } elseif ($tag[mb_strlen($tag) - 2] === '/') {
                     // self-closing tag in XML dialect
                     $truncated .= $tag;
                 } else {

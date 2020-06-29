@@ -1,5 +1,8 @@
 <?php
+
 declare(strict_types=1);
+
+namespace Marcgoertz\Shorten;
 
 use PHPUnit\Framework\TestCase;
 use Marcgoertz\Shorten\Shorten;
