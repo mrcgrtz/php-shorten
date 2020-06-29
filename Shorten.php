@@ -1,52 +1,36 @@
 <?php
-/**
- * Provides truncation functions.
- *
- * <code>
- * <?php
- * require_once('Shorten.php');
- * $shorten = new \Marcgoertz\Shorten\Shorten;
- * $shorten->truncateMarkup('<a href="http://example.com/">Go to example site</a>', 10);
- * ?>
- * </code>
- *
- * @package   php-shorten
- * @example   example.html.php
- * @link      https://github.com/Dreamseer/php-shorten/
- * @author    Marc Görtz (http://marcgoertz.de/)
- * @license   MIT License
- * @copyright Copyright (c) 2011-2015, Marc Görtz
- * @version   2.1.0
- */
 declare(strict_types=1);
 
 namespace Marcgoertz\Shorten;
 
 final class Shorten
 {
-
-    const VERSION = '2.1.0';
+    const ENTITIES_PATTERN = '/&#?[a-zA-Z0-9]+;/i';
+    const TAGS_AND_ENTITIES_PATTERN = '/<\/?([a-z]+)[^>]*>|&#?[a-zA-Z0-9]+;/i';
 
     /**
      * Safely truncate text containing markup.
      *
-     * @param   string $markup         text containing markup
-     * @param   int    $length         maximum length of truncated text (default: 400)
-     * @param   string $appendix       text added after truncated text (default: '…')
-     * @param   bool   $appendixInside add appendix to last content in tags, increases $length by 1 (default: false)
-     * @param   bool   $wordsafe       wordsafe truncation (default: false)
-     * @param   string $delimiter      delimiter for wordsafe truncation (default: ' ')
-     * @return  string                 truncated markup
+     * @param  string $markup         text containing markup
+     * @param  int    $length         maximum length of truncated text
+     * @param  string $appendix       text added after truncated text
+     * @param  bool   $appendixInside add appendix to last content in tags, increases $length by 1
+     * @param  bool   $wordsafe       wordsafe truncation
+     * @param  string $delimiter      delimiter for wordsafe truncation
+     * @return string                 truncated markup
      */
-    public function truncateMarkup($markup, $length = 400, $appendix = '…', $appendixInside = FALSE, $wordsafe = FALSE, $delimiter = ' ')
+    public function truncateMarkup(string $markup, int $length = 400, string $appendix = '…', bool $appendixInside = false, bool $wordsafe = false, string $delimiter = ' '): string
     {
         $truncated = '';
         $lengthOutput = 0;
         $position = 0;
         $tags = [];
 
+        // check for existing entities
+        $hasEntities = preg_match(self::ENTITIES_PATTERN, $markup);
+
         // just return the markup if text does not need be truncated
-        if (strlen(trim(strip_tags($markup))) <= $length) {
+        if (mb_strlen(trim(strip_tags($markup))) <= $length) {
             return $markup;
         }
 
@@ -58,18 +42,18 @@ final class Shorten
         ], htmlentities($markup, ENT_NOQUOTES, 'UTF-8'));
 
         // loop thru text
-        while ($lengthOutput < $length && preg_match('{</?([a-z]+)[^>]*>|&#?[a-zA-Z0-9]+;}', $markup, $match, PREG_OFFSET_CAPTURE, $position)) {
+        while ($lengthOutput < $length && preg_match(self::TAGS_AND_ENTITIES_PATTERN, $markup, $match, PREG_OFFSET_CAPTURE, $position)) {
             list($tag, $positionTag) = $match[0];
 
             // add text leading up to the tag or entity
             $text = substr($markup, $position, $positionTag - $position);
-            if ($lengthOutput + strlen($text) > $length) {
-                $truncated .= substr($text, 0, $length - $lengthOutput);
+            if ($lengthOutput + mb_strlen($text) > $length) {
+                $truncated .= mb_substr($text, 0, $length - $lengthOutput);
                 $lengthOutput = $length;
                 break;
             }
             $truncated .= $text;
-            $lengthOutput += strlen($text);
+            $lengthOutput += mb_strlen($text);
 
             // add tags and entities
             if ($tag[0] === '&') {
@@ -86,7 +70,7 @@ final class Shorten
                     // check that tags are properly nested
                     assert($openingTag === $tagName);
                     $truncated .= $tag;
-                } else if ($tag[strlen($tag) - 2] === '/') {
+                } else if ($tag[mb_strlen($tag) - 2] === '/') {
                     // self-closing tag in XML dialect
                     $truncated .= $tag;
                 } else {
@@ -97,21 +81,21 @@ final class Shorten
             }
 
             // continue after the tag
-            $position = $positionTag + strlen($tag);
+            $position = $positionTag + mb_strlen($tag);
         }
 
         // add any remaining text
-        if ($lengthOutput < $length && $position < strlen($markup)) {
-            $truncated .= substr($markup, $position, $length - $lengthOutput);
+        if ($lengthOutput < $length && $position < mb_strlen($markup)) {
+            $truncated .= mb_substr($markup, $position, $length - $lengthOutput);
         }
 
         // if the words shouldn't be cut in the middle...
         if ($wordsafe) {
             // ... search the last occurance of the delimiter...
-            $spacepos = strrpos($truncated, $delimiter);
+            $spacepos = mb_strrpos($truncated, $delimiter);
             if (isset($spacepos)) {
                 // ... and cut the text in this position
-                $truncated = substr($truncated, 0, $spacepos);
+                $truncated = mb_substr($truncated, 0, $spacepos);
             }
         }
 
@@ -125,15 +109,15 @@ final class Shorten
             $truncated .= sprintf('</%s>', array_pop($tags));
         }
 
-        // decode entities
-        $truncated = html_entity_decode($truncated, ENT_COMPAT, 'UTF-8');
+        // decode entities again if markup did not contain any entities
+        if ($hasEntities === 0) {
+            $truncated = html_entity_decode($truncated, ENT_COMPAT, 'UTF-8');
+        }
 
         if ($appendixInside) {
             return $truncated;
         } else {
             return $truncated . $appendix;
         }
-
     }
-
 }
