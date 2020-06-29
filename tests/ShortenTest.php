@@ -59,4 +59,22 @@ final class ShortenTest extends TestCase
             $shorten->truncateMarkup('<p>PHP éléphant</p>', 7, '…', TRUE)
         );
     }
+
+    public function testTruncatesMarkupWithEmoji(): void
+    {
+        $shorten = new Shorten();
+        $this->assertEquals(
+            '<p>PHP élé…</p>',
+            $shorten->truncateMarkup('<p>PHP éléphant 🐘</p>', 7, '…', TRUE)
+        );
+        $this->assertEquals(
+            '<p>PHP 🐘 é…</p>',
+            $shorten->truncateMarkup('<p>PHP 🐘 éléphant 🐘</p>', 7, '…', TRUE)
+        );
+        $this->assertEquals(
+            '<p>PHP …</p>',
+            $shorten->truncateMarkup('<p>PHP 🐘 éléphant 🐘</p>', 4, '…', TRUE)
+        );
+    }
+
 }
