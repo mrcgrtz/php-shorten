@@ -20,7 +20,7 @@ final class ShortenTest extends TestCase
         $shorten = new Shorten();
         $this->assertEquals(
             '<a href="https://example.com/">Go to</a>…',
-            $shorten->truncateMarkup('<a href="https://example.com/">Go to example site</a>', 10, '…', FALSE, TRUE)
+            $shorten->truncateMarkup('<a href="https://example.com/">Go to example site</a>', 10, '…', false, true)
         );
     }
 
@@ -29,7 +29,7 @@ final class ShortenTest extends TestCase
         $shorten = new Shorten();
         $this->assertEquals(
             '<a href="https://example.com/">Go to…</a>',
-            $shorten->truncateMarkup('<a href="https://example.com/">Go to example site</a>', 10, '…', TRUE, TRUE)
+            $shorten->truncateMarkup('<a href="https://example.com/">Go to example site</a>', 10, '…', true, true)
         );
     }
 
@@ -47,7 +47,7 @@ final class ShortenTest extends TestCase
         $shorten = new Shorten();
         $this->assertEquals(
             '<p>PHP &eacute;l&eacute;…</p>',
-            $shorten->truncateMarkup('<p>PHP &eacute;l&eacute;phant</p>', 7, '…', TRUE)
+            $shorten->truncateMarkup('<p>PHP &eacute;l&eacute;phant</p>', 7, '…', true)
         );
     }
 
@@ -56,7 +56,7 @@ final class ShortenTest extends TestCase
         $shorten = new Shorten();
         $this->assertEquals(
             '<p>PHP élé…</p>',
-            $shorten->truncateMarkup('<p>PHP éléphant</p>', 7, '…', TRUE)
+            $shorten->truncateMarkup('<p>PHP éléphant</p>', 7, '…', true)
         );
     }
 
@@ -65,16 +65,15 @@ final class ShortenTest extends TestCase
         $shorten = new Shorten();
         $this->assertEquals(
             '<p>PHP élé…</p>',
-            $shorten->truncateMarkup('<p>PHP éléphant 🐘</p>', 7, '…', TRUE)
+            $shorten->truncateMarkup('<p>PHP éléphant 🐘</p>', 7, '…', true)
         );
         $this->assertEquals(
             '<p>PHP 🐘 é…</p>',
-            $shorten->truncateMarkup('<p>PHP 🐘 éléphant 🐘</p>', 7, '…', TRUE)
+            $shorten->truncateMarkup('<p>PHP 🐘 éléphant 🐘</p>', 7, '…', true)
         );
         $this->assertEquals(
             '<p>PHP …</p>',
-            $shorten->truncateMarkup('<p>PHP 🐘 éléphant 🐘</p>', 4, '…', TRUE)
+            $shorten->truncateMarkup('<p>PHP 🐘 éléphant 🐘</p>', 4, '…', true)
         );
     }
-
 }
