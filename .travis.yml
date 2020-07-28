@@ -1,5 +1,4 @@
-dist: trusty
 language: php
-php: 7.4.7
+php: 7.4
 install: composer install
 script: phpunit
