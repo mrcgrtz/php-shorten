@@ -1,4 +1,2 @@
 language: php
 php: 7.4
-# install: composer install
-script: phpunit
