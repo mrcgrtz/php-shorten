@@ -17,6 +17,7 @@
         }
     ],
     "autoload": {
+        "psr-0": {"Marcgoertz\\Shorten\\": ""},
         "psr-4": {"Marcgoertz\\Shorten\\": ""}
     },
     "minimum-stability": "stable",
