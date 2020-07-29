@@ -1,6 +1,8 @@
 # Shorten
 
-Provides additional truncation functions in PHP.
+> Provides additional truncation functions in PHP.
+
+[![Coverage Status](https://coveralls.io/repos/github/Dreamseer/php-shorten/badge.svg?branch=main)](https://coveralls.io/github/Dreamseer/php-shorten?branch=main)
 
 ```php
 <?php
