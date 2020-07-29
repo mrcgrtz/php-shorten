@@ -1,5 +1,5 @@
 language: php
 php: 7.4
 install: composer install --dev --no-interaction
-script: ./vendor/bin/phpunit -c phpunit.xml.dist
+script: ./vendor/bin/phpunit -c phpunit.xml
 after_success: ./vendor/bin/php-coveralls
