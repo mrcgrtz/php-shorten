@@ -26,6 +26,9 @@
         "psr-0": {"Marcgoertz\\Shorten\\": ""},
         "psr-4": {"Marcgoertz\\Shorten\\": ""}
     },
+    "scripts": {
+        "test": "phpunit"
+    },
     "minimum-stability": "stable",
     "require": {
         "php": ">=5.6"
