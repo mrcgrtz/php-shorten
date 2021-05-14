@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  prepare:
+  test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -23,9 +23,6 @@ jobs:
           ${{ runner.os }}-php-
     - name: Install dependencies
       run: composer install --dev --prefer-dist --no-progress --no-interaction
-  test:
-    needs: prepare
-    steps:
     - name: Run test suite
       run: composer run-script test
     - name: Upload coverage results to Coveralls
