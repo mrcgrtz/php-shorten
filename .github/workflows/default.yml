@@ -25,6 +25,7 @@ jobs:
       run: composer install --dev --prefer-dist --no-progress --no-interaction
   test:
     needs: prepare
+    runs-on: ubuntu-latest
     steps:
     - name: Run test suite
       run: composer run-script test
