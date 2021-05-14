@@ -26,7 +26,7 @@
         "psr-4": {"Marcgoertz\\Shorten\\": ""}
     },
     "scripts": {
-        "test": "XDEBUG_MODE=coverage phpunit"
+        "test": "phpunit"
     },
     "minimum-stability": "stable",
     "require": {
