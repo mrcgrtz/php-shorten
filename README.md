@@ -8,11 +8,25 @@
 ![Packagist Stars](https://img.shields.io/packagist/stars/marcgoertz/shorten)
 [![MIT License](https://img.shields.io/github/license/dreamseer/php-shorten)](https://github.com/Dreamseer/php-shorten/blob/main/LICENSE.md)
 
+## Installation
+
+I recommend using [Composer](https://getcomposer.org/) for installing and using Shorten:
+
+```bash
+composer require marcgoertz/shorten
+```
+
+Of course you can also just require it in your scripts directly.
+
+## Usage
+
 ```php
 <?php
-require_once('Shorten.php');
+
+use Marcgoertz\Shorten\Shorten;
+
 $shorten = new Shorten();
-$shorten->truncateMarkup('<a href="https://example.com/">Go to example site</a>', 10);
+print $shorten->truncateMarkup('<a href="https://example.com/">Go to example site</a>', 10);
 ?>
 ```
 
@@ -25,15 +39,21 @@ Output:
 ## Functions
 
 ```php
-truncateMarkup($markup, $length = 400, $appendix = '…', $appendixInside = FALSE, $wordsafe = FALSE)
+truncateMarkup(
+    string $markup,
+    int $length = 400,
+    string $appendix = '…',
+    bool $appendixInside = false,
+    bool $wordsafe = false
+): string
 ```
 
 * String `$markup`: Text containing markup
-* Integer `$length`: Maximum length of truncated text (default: 400)
-* String `$appendix`: Text added after truncated text (default: '…')
-* Boolean `$appendixInside`: Add appendix to last content in tags, increases $length by 1 (default: false)
-* Boolean `$wordsafe`: Wordsafe truncation (default: false)
-* String `$delimiter`: Delimiter for wordsafe truncation (default: ' ')
+* Integer `$length`: Maximum length of truncated text (default: `400`)
+* String `$appendix`: Text added after truncated text (default: `'…'`)
+* Boolean `$appendixInside`: Add appendix to last content in tags, increases `$length` by 1 (default: `false`)
+* Boolean `$wordsafe`: Wordsafe truncation (default: `false`)
+* String `$delimiter`: Delimiter for wordsafe truncation (default: `' '`)
 
 ## License
 
