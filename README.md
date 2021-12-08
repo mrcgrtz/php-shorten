@@ -2,6 +2,7 @@
 
 > Provides additional truncation functions in PHP.
 
+[![Test](https://github.com/Dreamseer/php-shorten/actions/workflows/test.yml/badge.svg)](https://github.com/Dreamseer/php-shorten/actions/workflows/test.yml)
 [![Coverage Status](https://coveralls.io/repos/github/Dreamseer/php-shorten/badge.svg?branch=main)](https://coveralls.io/github/Dreamseer/php-shorten?branch=main)
 ![Packagist PHP Version Support](https://img.shields.io/packagist/php-v/marcgoertz/shorten)
 ![Packagist Downloads](https://img.shields.io/packagist/dt/marcgoertz/shorten)

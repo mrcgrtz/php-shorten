@@ -1,4 +1,4 @@
-name: Default
+name: Test
 
 on:
   push:
@@ -8,17 +8,26 @@ on:
 
 jobs:
   test:
+
+    strategy:
+      matrix:
+        php-versions: ['5.6', '7.4', '8.0', '8.1']
+
     runs-on: ubuntu-latest
+
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+
     - name: Setup PHP with Xdebug
       uses: shivammathur/setup-php@v2
       with:
         php-version: '7.4'
         coverage: xdebug
+
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
+
     - name: Cache Composer packages
       id: composer-cache
       uses: actions/cache@v2
@@ -27,10 +36,13 @@ jobs:
         key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
         restore-keys: |
           ${{ runner.os }}-php-
+
     - name: Install dependencies
       run: composer install --dev --prefer-dist --no-progress --no-interaction
+
     - name: Run test suite
       run: composer run-script test
+
     - name: Upload coverage results to Coveralls
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
