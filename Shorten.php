@@ -8,6 +8,25 @@ final class Shorten
 {
     private const ENTITIES_PATTERN = '/&#?[a-zA-Z0-9]+;/i';
     private const TAGS_AND_ENTITIES_PATTERN = '/<\/?([a-z]+)[^>]*>|&#?[a-zA-Z0-9]+;/i';
+    private const SELF_CLOSING_TAGS = [
+        'area',
+        'base',
+        'br',
+        'col',
+        'embed',
+        'hr',
+        'img',
+        'input',
+        'link',
+        'meta',
+        'param',
+        'source',
+        'track',
+        'wbr',
+        'command',
+        'keygen',
+        'menuitem',
+    ];
 
     /**
      * Safely truncate text containing markup.
@@ -91,6 +110,9 @@ final class Shorten
                     $truncated .= $tag;
                 } elseif ($tag[mb_strlen($tag) - 2] === '/') {
                     // self-closing tag in XML dialect
+                    $truncated .= $tag;
+                } elseif (in_array($tagName, self::SELF_CLOSING_TAGS)) {
+                    // self-closing tag in non-XML dialect
                     $truncated .= $tag;
                 } else {
                     // opening tag

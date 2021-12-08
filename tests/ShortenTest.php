@@ -79,4 +79,22 @@ final class ShortenTest extends TestCase
             $shorten->truncateMarkup('<p>PHP 🐘 éléphant 🐘</p>', 4, '…', true)
         );
     }
+
+    public function testTruncatesMarkupWithXMLStyledSelfClosingTags(): void
+    {
+        $shorten = new Shorten();
+        $this->assertEquals(
+            '<a href="https://example.com/">Go to<br />examp</a>…',
+            $shorten->truncateMarkup('<a href="https://example.com/">Go to<br />example site</a>', 10)
+        );
+    }
+
+    public function testTruncatesMarkupWithNonXMLStyledSelfClosingTags(): void
+    {
+        $shorten = new Shorten();
+        $this->assertEquals(
+            '<a href="https://example.com/"><img src="icon.gif" alt=""> Go to exa</a>…',
+            $shorten->truncateMarkup('<a href="https://example.com/"><img src="icon.gif" alt=""> Go to example site</a>', 10)
+        );
+    }
 }
