@@ -2,12 +2,12 @@
 
 > Provides additional truncation functions in PHP.
 
-[![Test](https://github.com/Dreamseer/php-shorten/actions/workflows/test.yml/badge.svg)](https://github.com/Dreamseer/php-shorten/actions/workflows/test.yml)
-[![Coverage Status](https://coveralls.io/repos/github/Dreamseer/php-shorten/badge.svg?branch=main)](https://coveralls.io/github/Dreamseer/php-shorten?branch=main)
+[![Test](https://github.com/mrcgrtz/php-shorten/actions/workflows/test.yml/badge.svg)](https://github.com/mrcgrtz/php-shorten/actions/workflows/test.yml)
+[![Coverage Status](https://coveralls.io/repos/github/mrcgrtz/php-shorten/badge.svg?branch=main)](https://coveralls.io/github/mrcgrtz/php-shorten?branch=main)
 ![Packagist PHP Version Support](https://img.shields.io/packagist/php-v/marcgoertz/shorten)
 ![Packagist Downloads](https://img.shields.io/packagist/dt/marcgoertz/shorten)
 ![Packagist Stars](https://img.shields.io/packagist/stars/marcgoertz/shorten)
-[![MIT License](https://img.shields.io/github/license/dreamseer/php-shorten)](https://github.com/Dreamseer/php-shorten/blob/main/LICENSE.md)
+[![MIT License](https://img.shields.io/github/license/mrcgrtz/php-shorten)](https://github.com/mrcgrtz/php-shorten/blob/main/LICENSE.md)
 
 ## Installation
 

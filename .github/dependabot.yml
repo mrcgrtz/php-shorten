@@ -1,16 +1,18 @@
 version: 2
-
 updates:
+
+  # Maintain dependencies for Composer
   - package-ecosystem: "composer"
     directory: "/"
     schedule:
       interval: "weekly"
     assignees:
-      - "dreamseer"
+      - "mrcgrtz"
 
+  # Check for updates to GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
     assignees:
-      - "dreamseer"
+      - "mrcgrtz"

@@ -1,7 +1,7 @@
 {
     "name": "marcgoertz/shorten",
     "description": "Provides truncation functions.",
-    "homepage": "https://github.com/Dreamseer/php-shorten",
+    "homepage": "https://github.com/mrcgrtz/php-shorten",
     "keywords": [
         "truncation",
         "shorten",
@@ -19,6 +19,10 @@
         {
             "type": "kofi",
             "url": "https://ko-fi.com/mrcgrtz"
+        },
+        {
+            "type": "liberapay",
+            "url": "https://liberapy.com/mrcgrtz"
         }
     ],
     "autoload": {
