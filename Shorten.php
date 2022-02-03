@@ -7,7 +7,7 @@ namespace Marcgoertz\Shorten;
 final class Shorten
 {
     private const ENTITIES_PATTERN = '/&#?[a-zA-Z0-9]+;/i';
-    private const TAGS_AND_ENTITIES_PATTERN = '/<\/?([a-z]+)[^>]*>|&#?[a-zA-Z0-9]+;/i';
+    private const TAGS_AND_ENTITIES_PATTERN = '/<\/?([a-z0-9]+)[^>]*>|&#?[a-zA-Z0-9]+;/i';
     private const SELF_CLOSING_TAGS = [
         'area',
         'base',
