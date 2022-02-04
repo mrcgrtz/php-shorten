@@ -97,4 +97,13 @@ final class ShortenTest extends TestCase
             $shorten->truncateMarkup('<a href="https://example.com/"><img src="icon.gif" alt=""> Go to example site</a>', 10)
         );
     }
+
+    public function testTruncatesMarkupWithHeadingTags(): void
+    {
+        $shorten = new Shorten();
+        $this->assertEquals(
+            '<h1>Example</h1>…',
+            $shorten->truncateMarkup('<h1>Example Heading</h1>', 7)
+        );
+    }
 }
