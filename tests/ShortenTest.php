@@ -178,4 +178,22 @@ final class ShortenTest extends TestCase
         $this->assertLessThan(mb_strlen($longText), mb_strlen($result));
         $this->assertStringEndsWith('…', strip_tags($result));
     }
+
+    public function testTruncatesMarkupWithDelimiterInTag(): void
+    {
+        $shorten = new Shorten();
+        $this->assertEquals(
+            'Hello world <a href="#" rel="nofollow">li...</a>',
+            $shorten->truncateMarkup('Hello world <a href="#" rel="nofollow">link</a>', 14, '...', true, false)
+        );
+    }
+
+    public function testTruncatesMarkupWithDelimiterInTagWordSafe(): void
+    {
+        $shorten = new Shorten();
+        $this->assertEquals(
+            'Hello world...',
+            $shorten->truncateMarkup('Hello world <a href="#" rel="nofollow">link</a>', 14, '...', true, true)
+        );
+    }
 }
