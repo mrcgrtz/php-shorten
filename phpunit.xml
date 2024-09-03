@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bootstrap="vendor/autoload.php" colors="true" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
-  <coverage includeUncoveredFiles="true">
-    <include>
-      <directory>./</directory>
-    </include>
-    <report>
-      <clover outputFile="./build/logs/clover.xml"/>
-    </report>
-  </coverage>
-  <testsuites>
-    <testsuite name="unit">
-      <directory suffix=".php">./tests/</directory>
-    </testsuite>
-  </testsuites>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bootstrap="vendor/autoload.php" colors="true" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.3/phpunit.xsd">
+    <coverage includeUncoveredFiles="true">
+        <report>
+            <clover outputFile="./build/logs/clover.xml"/>
+        </report>
+    </coverage>
+    <testsuites>
+        <testsuite name="unit">
+            <directory suffix=".php">./tests/</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>./</directory>
+        </include>
+    </source>
 </phpunit>
