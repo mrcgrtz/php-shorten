@@ -39,22 +39,70 @@ Output:
 
 ## Functions
 
+### `truncateMarkup()`
+
 ```php
 truncateMarkup(
     string $markup,
     int $length = 400,
     string $appendix = '…',
     bool $appendixInside = false,
-    bool $wordsafe = false
+    bool $wordsafe = false,
+    string $delimiter = ' '
 ): string
 ```
 
-* String `$markup`: Text containing markup
-* Integer `$length`: Maximum length of truncated text (default: `400`)
-* String `$appendix`: Text added after truncated text (default: `'…'`)
-* Boolean `$appendixInside`: Add appendix to last content in tags, increases `$length` by 1 (default: `false`)
-* Boolean `$wordsafe`: Wordsafe truncation (default: `false`)
-* String `$delimiter`: Delimiter for wordsafe truncation (default: `' '`)
+#### Parameters
+
+* `string $markup`: Text containing markup
+* `int $length`: Maximum length of truncated text (default: `400`)
+* `string $appendix`: Text added after truncated text (default: `'…'`)
+* `bool $appendixInside`: Add appendix to last content in tags, increases `$length` by 1 (default: `false`)
+* `bool $wordsafe`: Wordsafe truncation, cuts at word boundaries (default: `false`)
+* `string $delimiter`: Delimiter for wordsafe truncation (default: `' '`)
+
+#### Examples
+
+```php
+<?php
+use Marcgoertz\Shorten\Shorten;
+
+$shorten = new Shorten();
+
+// Basic truncation
+$result = $shorten->truncateMarkup('<b>Hello world test</b>', 10);
+// Output: <b>Hello worl</b>…
+
+// Appendix inside tags
+$result = $shorten->truncateMarkup('<b>Hello world test</b>', 10, '...', true);
+// Output: <b>Hello worl...</b>
+
+// Wordsafe truncation (cuts at word boundaries)
+$result = $shorten->truncateMarkup('<b>Hello world test</b>', 10, '...', false, true);
+// Output: <b>Hello</b>...
+
+// Custom delimiter for wordsafe truncation
+$result = $shorten->truncateMarkup('<b>Hello-world-test</b>', 10, '...', false, true, '-');
+// Output: <b>Hello</b>...
+
+// Preserves HTML structure with nested tags
+$result = $shorten->truncateMarkup('<div><b><i>Hello world</i></b></div>', 8);
+// Output: <div><b><i>Hello wo</i></b></div>…
+
+// Handles HTML entities correctly
+$result = $shorten->truncateMarkup('<b>Caf&eacute; &amp; Restaurant</b>', 8);
+// Output: <b>Café &amp; Re</b>…
+?>
+```
+
+#### Features
+
+* ✅ Preserves HTML tag structure and proper nesting
+* ✅ Handles HTML entities correctly
+* ✅ Supports self-closing tags (both XML and HTML5 style)
+* ✅ UTF-8 and multibyte character support (including emojis)
+* ✅ Wordsafe truncation to avoid cutting words in the middle
+* ✅ Configurable appendix text and placement
 
 ## License
 
