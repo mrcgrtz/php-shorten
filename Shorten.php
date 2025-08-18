@@ -137,6 +137,50 @@ final class Shorten
             if (isset($spacepos)) {
                 // ... and cut the text in this position
                 $truncated = mb_substr($truncated, 0, $spacepos);
+
+                // After wordsafe truncation, we need to ensure we don't have incomplete tags
+                // Check if we cut in the middle of a tag by counting < and >
+                $lastOpenBracket = mb_strrpos($truncated, '<');
+                $lastCloseBracket = mb_strrpos($truncated, '>');
+
+                // If the last < comes after the last >, we have an incomplete tag
+                if ($lastOpenBracket !== false && ($lastCloseBracket === false || $lastOpenBracket > $lastCloseBracket)) {
+                    // Remove the incomplete tag and everything after it
+                    $truncated = mb_substr($truncated, 0, $lastOpenBracket);
+
+                    // Trim any trailing whitespace
+                    $truncated = rtrim($truncated);
+
+                    // Clear the tags array since we need to recalculate
+                    $tags = [];
+
+                    // Re-parse the clean truncated text to find which tags are still open
+                    $tempPosition = 0;
+                    while (
+                        preg_match(
+                            self::TAGS_AND_ENTITIES_PATTERN,
+                            $truncated,
+                            $match,
+                            PREG_OFFSET_CAPTURE,
+                            $tempPosition
+                        )
+                    ) {
+                        list($tag, $positionTag) = $match[0];
+
+                        if ($tag[0] !== '&') {
+                            $tagName = $match[1][0];
+                            if (mb_strlen($tag) > 1 && $tag[1] === '/') {
+                                // Closing tag
+                                array_pop($tags);
+                            } elseif (!(mb_strlen($tag) >= 2 && $tag[mb_strlen($tag) - 2] === '/' || in_array($tagName, self::SELF_CLOSING_TAGS))) {
+                                // Opening tag (not self-closing)
+                                $tags[] = $tagName;
+                            }
+                        }
+
+                        $tempPosition = $positionTag + mb_strlen($tag);
+                    }
+                }
             }
         }
 
