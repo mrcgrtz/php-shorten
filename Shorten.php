@@ -130,7 +130,16 @@ final class Shorten
                     // this is a closing tag
                     $openingTag = array_pop($tags);
                     // check that tags are properly nested
-                    assert($openingTag === $tagName);
+                    if ($openingTag !== $tagName) {
+                        // Malformed HTML - attempt to recover by ignoring the mismatched closing tag
+                        // Push the opening tag back and continue
+                        if ($openingTag !== null) {
+                            $tags[] = $openingTag;
+                        }
+                        // Skip this malformed closing tag
+                        $position = $positionTag + mb_strlen($tag);
+                        continue;
+                    }
                     $truncated .= $tag;
                 } elseif ($tag[mb_strlen($tag) - 2] === '/') {
                     // self-closing tag in XML dialect
