@@ -158,7 +158,7 @@ final class Shorten
         if ($wordsafe) {
             // ... search the last occurance of the delimiter...
             $spacepos = mb_strrpos($truncated, $delimiter);
-            if (isset($spacepos)) {
+            if ($spacepos !== false) {
                 // ... and cut the text in this position
                 $truncated = mb_substr($truncated, 0, $spacepos);
 
