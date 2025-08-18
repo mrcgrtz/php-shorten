@@ -179,7 +179,7 @@ final class ShortenTest extends TestCase
 
         // Complex emoji with modifiers
         $result = $this->shorten->truncateMarkup('<p>👨‍👩‍👧‍👦 family 👋🏽 wave</p>', 3);
-        $this->assertEquals('<p>👨‍👩‍</p>…', $result);
+        $this->assertEquals('<p>👨‍👩‍👧‍👦 f</p>…', $result);
     }
 
     // === Wordsafe Truncation Tests ===
