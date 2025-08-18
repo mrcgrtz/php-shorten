@@ -281,8 +281,10 @@ final class Shorten
         // ensure we do not have incomplete tags after wordsafe truncation
         if ($this->hasIncompleteTag($truncated)) {
             $truncated = $this->removeIncompleteTag($truncated);
-            $tags = $this->recalculateOpenTags($truncated);
         }
+
+        // Always recalculate tags after wordsafe truncation since content changed
+        $tags = $this->recalculateOpenTags($truncated);
 
         return ['text' => $truncated, 'tags' => $tags];
     }
@@ -330,8 +332,12 @@ final class Shorten
             if ($tag[0] !== '&') {
                 $tagName = $match[1][0];
                 if (mb_strlen($tag) > 1 && $tag[1] === '/') {
-                    // Closing tag
-                    array_pop($tags);
+                    // Closing tag - only pop if it matches the last opened tag
+                    $openingTag = array_pop($tags);
+                    if ($openingTag !== $tagName && $openingTag !== null) {
+                        // Tags do not match - push the opening tag back
+                        $tags[] = $openingTag;
+                    }
                 } elseif (!$this->isSelfClosingTag($tag, $tagName)) {
                     // Opening tag (not self-closing)
                     $tags[] = $tagName;
