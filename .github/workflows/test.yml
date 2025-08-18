@@ -47,3 +47,4 @@ jobs:
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: php vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
+      continue-on-error: true
