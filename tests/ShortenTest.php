@@ -196,4 +196,49 @@ final class ShortenTest extends TestCase
             $shorten->truncateMarkup('Hello world <a href="#" rel="nofollow">link</a>', 14, '...', true, true)
         );
     }
+
+    public function testParameterValidation(): void
+    {
+        $shorten = new Shorten();
+
+        // Test negative length
+        $this->assertEquals(
+            '…',
+            $shorten->truncateMarkup('<p>Hello world</p>', -5)
+        );
+
+        // Test zero length
+        $this->assertEquals(
+            '…',
+            $shorten->truncateMarkup('<p>Hello world</p>', 0)
+        );
+
+        // Test zero length with appendix inside
+        $this->assertEquals(
+            '',
+            $shorten->truncateMarkup('<p>Hello world</p>', 0, '...', true)
+        );
+    }
+
+    public function testEmptyDelimiterThrowsException(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Delimiter cannot be empty for wordsafe truncation');
+
+        $shorten = new Shorten();
+        $shorten->truncateMarkup('<p>Hello world</p>', 10, '...', false, true, '');
+    }
+
+    public function testMalformedHtmlHandling(): void
+    {
+        $shorten = new Shorten();
+
+        // Test mismatched closing tag - should handle gracefully
+        $result = $shorten->truncateMarkup('<div><p>Hello</div></p>', 10);
+        $this->assertStringContainsString('Hello', $result);
+
+        // Test unclosed tag
+        $result = $shorten->truncateMarkup('<div><p>Hello world', 8);
+        $this->assertEquals('<div><p>Hello wo</p></div>…', $result);
+    }
 }
