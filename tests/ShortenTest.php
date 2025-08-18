@@ -9,236 +9,305 @@ use Marcgoertz\Shorten\Shorten;
 
 final class ShortenTest extends TestCase
 {
-    public function testTruncatesMarkup(): void
+    private Shorten $shorten;
+
+    protected function setUp(): void
     {
-        $shorten = new Shorten();
-        $this->assertEquals(
-            '<a href="https://example.com/">Go to exam</a>…',
-            $shorten->truncateMarkup('<a href="https://example.com/">Go to example site</a>', 10)
-        );
+        $this->shorten = new Shorten();
     }
 
-    public function testTruncatesMarkupWithAppendixOutside(): void
+    // === Basic Functionality Tests ===
+
+    public function testBasicTruncation(): void
     {
-        $shorten = new Shorten();
-        $this->assertEquals(
-            '<a href="https://example.com/">Go to</a>…',
-            $shorten->truncateMarkup('<a href="https://example.com/">Go to example site</a>', 10, '…', false, true)
+        $result = $this->shorten->truncateMarkup(
+            '<a href="https://example.com/">Go to example site</a>',
+            10
         );
+        $this->assertEquals('<a href="https://example.com/">Go to exam</a>…', $result);
     }
 
-    public function testTruncatesMarkupWithAppendixInside(): void
+    public function testAppendixPlacement(): void
     {
-        $shorten = new Shorten();
-        $this->assertEquals(
-            '<a href="https://example.com/">Go to…</a>',
-            $shorten->truncateMarkup('<a href="https://example.com/">Go to example site</a>', 10, '…', true, true)
-        );
+        $markup = '<a href="https://example.com/">Go to example site</a>';
+
+        // Appendix outside (default)
+        $result = $this->shorten->truncateMarkup($markup, 10, '…', false, true);
+        $this->assertEquals('<a href="https://example.com/">Go to</a>…', $result);
+
+        // Appendix inside
+        $result = $this->shorten->truncateMarkup($markup, 10, '…', true, true);
+        $this->assertEquals('<a href="https://example.com/">Go to…</a>', $result);
     }
 
-    public function testTruncatesMarkupOnlyIfNeeded(): void
+    public function testNoTruncationNeeded(): void
     {
-        $shorten = new Shorten();
-        $this->assertEquals(
-            'Lorem ipsum <b>dolor</b> sit amet',
-            $shorten->truncateMarkup('Lorem ipsum <b>dolor</b> sit amet', 26)
-        );
+        $result = $this->shorten->truncateMarkup('Lorem ipsum <b>dolor</b> sit amet', 26);
+        $this->assertEquals('Lorem ipsum <b>dolor</b> sit amet', $result);
     }
 
-    public function testTruncatesMarkupWithEntities(): void
+    public function testCustomAppendix(): void
     {
-        $shorten = new Shorten();
-        $this->assertEquals(
-            '<p>PHP &eacute;l&eacute;…</p>',
-            $shorten->truncateMarkup('<p>PHP &eacute;l&eacute;phant</p>', 7, '…', true)
-        );
+        $result = $this->shorten->truncateMarkup('<p>Hello world test</p>', 11, '...', true);
+        $this->assertEquals('<p>Hello world...</p>', $result);
     }
 
-    public function testTruncatesMarkupWithUnicodeChars(): void
+    // === Edge Cases ===
+
+    public function testEdgeCaseLengths(): void
     {
-        $shorten = new Shorten();
-        $this->assertEquals(
-            '<p>PHP élé…</p>',
-            $shorten->truncateMarkup('<p>PHP éléphant</p>', 7, '…', true)
-        );
+        // Zero length
+        $this->assertEquals('…', $this->shorten->truncateMarkup('<p>Hello world</p>', 0));
+        $this->assertEquals('', $this->shorten->truncateMarkup('<p>Hello world</p>', 0, '...', true));
+
+        // Negative length
+        $this->assertEquals('…', $this->shorten->truncateMarkup('<p>Hello world</p>', -5));
+
+        // Length of 1
+        $this->assertEquals('<p>H</p>…', $this->shorten->truncateMarkup('<p>Hello world</p>', 1));
+
+        // Very large length
+        $this->assertEquals('<p>Short</p>', $this->shorten->truncateMarkup('<p>Short</p>', 1000000));
     }
 
-    public function testTruncatesMarkupWithEmoji(): void
+    public function testEmptyContent(): void
     {
-        $shorten = new Shorten();
-        $this->assertEquals(
-            '<p>PHP élé…</p>',
-            $shorten->truncateMarkup('<p>PHP éléphant 🐘</p>', 7, '…', true)
-        );
-        $this->assertEquals(
-            '<p>PHP 🐘 é…</p>',
-            $shorten->truncateMarkup('<p>PHP 🐘 éléphant 🐘</p>', 7, '…', true)
-        );
-        $this->assertEquals(
-            '<p>PHP …</p>',
-            $shorten->truncateMarkup('<p>PHP 🐘 éléphant 🐘</p>', 4, '…', true)
-        );
+        $this->assertEquals('', $this->shorten->truncateMarkup('', 10));
+        $this->assertEquals('<p>   </p>', $this->shorten->truncateMarkup('<p>   </p>', 10));
     }
 
-    public function testTruncatesMarkupWithXMLStyledSelfClosingTags(): void
+    public function testBoundaryConditions(): void
     {
-        $shorten = new Shorten();
-        $this->assertEquals(
-            '<a href="https://example.com/">Go to<br />examp</a>…',
-            $shorten->truncateMarkup('<a href="https://example.com/">Go to<br />example site</a>', 10)
-        );
+        // Length exactly matches content
+        $this->assertEquals('<p>Hello</p>', $this->shorten->truncateMarkup('<p>Hello</p>', 5));
+        $this->assertEquals('<strong>Hello</strong>', $this->shorten->truncateMarkup('<strong>Hello</strong>', 5));
     }
 
-    public function testTruncatesMarkupWithNonXMLStyledSelfClosingTags(): void
+    // === HTML Structure Tests ===
+
+    public function testNestedTags(): void
     {
-        $shorten = new Shorten();
-        $this->assertEquals(
-            '<a href="https://example.com/"><img src="icon.gif" alt=""> Go to exa</a>…',
-            $shorten->truncateMarkup('<a href="https://example.com/"><img src="icon.gif" alt=""> Go to example site</a>', 10)
-        );
+        $result = $this->shorten->truncateMarkup('<div><p><strong>Hello world test</strong></p></div>', 5);
+        $this->assertEquals('<div><p><strong>Hello</strong></p></div>…', $result);
     }
 
-    public function testTruncatesMarkupWithHeadingTags(): void
+    public function testSelfClosingTags(): void
     {
-        $shorten = new Shorten();
-        $this->assertEquals(
-            '<h1>Example</h1>…',
-            $shorten->truncateMarkup('<h1>Example Heading</h1>', 7)
-        );
+        // XML-style
+        $result = $this->shorten->truncateMarkup('<p>Line one<br/>Line two<hr/>End</p>', 15);
+        $this->assertEquals('<p>Line one<br/>Line tw</p>…', $result);
+
+        // HTML-style
+        $result = $this->shorten->truncateMarkup('<p>Image: <img src="test.jpg" alt="test"> and text</p>', 12);
+        $this->assertEquals('<p>Image: <img src="test.jpg" alt="test"> and </p>…', $result);
+
+        // Mixed
+        $result = $this->shorten->truncateMarkup('<div>Start<br>Middle<hr/>End</div>', 10);
+        $this->assertEquals('<div>Start<br>Middl</div>…', $result);
     }
 
-    public function testTruncateWithDifferentAppendix(): void
+    public function testComplexAttributes(): void
     {
-        $shorten = new Shorten();
-        $this->assertEquals(
-            '<p>Hello world...</p>',
-            $shorten->truncateMarkup('<p>Hello world test</p>', 11, '...', true)
+        $result = $this->shorten->truncateMarkup(
+            '<a href="https://example.com?param=value&other=test" title="Link\'s title">Link text here</a>',
+            8
         );
+        $this->assertEquals('<a href="https://example.com?param=value&other=test" title="Link\'s title">Link tex</a>…', $result);
     }
 
-    public function testTruncateWithNoAppendix(): void
+    public function testTagsOnly(): void
     {
-        $shorten = new Shorten();
-        $this->assertEquals(
-            '<p>Hello</p>',
-            $shorten->truncateMarkup('<p>Hello world</p>', 5, '', true)
-        );
+        $this->assertEquals('<div><span></span></div>', $this->shorten->truncateMarkup('<div><span></span></div>', 10));
     }
 
-    public function testTruncateWithZeroLength(): void
+    // === Malformed HTML Tests ===
+
+    public function testMalformedHtml(): void
     {
-        $shorten = new Shorten();
-        $this->assertEquals(
-            '…',
-            $shorten->truncateMarkup('<p>Hello world</p>', 0)
-        );
+        // Mismatched closing tag
+        $result = $this->shorten->truncateMarkup('<div><p>Hello</div></p>', 10);
+        $this->assertStringContainsString('Hello', $result);
+
+        // Unclosed tags
+        $result = $this->shorten->truncateMarkup('<div><p>Hello world', 8);
+        $this->assertEquals('<div><p>Hello wo</p></div>…', $result);
+
+        // Complex nesting with mismatched tags
+        $result = $this->shorten->truncateMarkup('<div><p><span><strong>Hello</div></strong></span></p>', 10);
+        $this->assertEquals('<div><p><span><strong>Hello</div></strong></span></p>', $result);
     }
 
-    public function testTruncateWithNegativeLength(): void
+    // === Entity Handling Tests ===
+
+    public function testHtmlEntities(): void
     {
-        $shorten = new Shorten();
-        $this->assertEquals(
-            '…',
-            $shorten->truncateMarkup('<p>Hello world</p>', -5)
-        );
+        $result = $this->shorten->truncateMarkup('<p>PHP &eacute;l&eacute;phant</p>', 7, '…', true);
+        $this->assertEquals('<p>PHP &eacute;l&eacute;…</p>', $result);
+
+        // Multiple entities
+        $result = $this->shorten->truncateMarkup('<p>&lt;&gt;&amp;&quot;&apos;</p>', 3);
+        $this->assertEquals('<p>&lt;&gt;&amp;</p>…', $result);
+
+        // Mixed with text
+        $result = $this->shorten->truncateMarkup('<p>A&nbsp;B&nbsp;C&nbsp;D</p>', 4);
+        $this->assertEquals('<p>A&nbsp;B&nbsp;</p>…', $result);
+
+        // Numeric and hex entities
+        $result = $this->shorten->truncateMarkup('<p>&#65;&#66;&#67;normal</p>', 5);
+        $this->assertEquals('<p>&#65;&#66;&#67;no</p>…', $result);
     }
 
-    public function testTruncateEmptyString(): void
+    // === Unicode and Emoji Tests ===
+
+    public function testUnicodeHandling(): void
     {
-        $shorten = new Shorten();
-        $this->assertEquals(
-            '',
-            $shorten->truncateMarkup('', 10)
-        );
+        $result = $this->shorten->truncateMarkup('<p>PHP éléphant</p>', 7, '…', true);
+        $this->assertEquals('<p>PHP élé…</p>', $result);
+
+        // Mixed scripts
+        $result = $this->shorten->truncateMarkup('<p>ASCII тест ελληνικά</p>', 10);
+        $this->assertEquals('<p>ASCII тест</p>…', $result);
     }
 
-    public function testTruncateWithNestedTags(): void
+    public function testEmojiHandling(): void
     {
-        $shorten = new Shorten();
-        $this->assertEquals(
-            '<div><p><strong>Hello</strong></p></div>…',
-            $shorten->truncateMarkup('<div><p><strong>Hello world test</strong></p></div>', 5)
-        );
+        $result = $this->shorten->truncateMarkup('<p>PHP éléphant 🐘</p>', 7, '…', true);
+        $this->assertEquals('<p>PHP élé…</p>', $result);
+
+        $result = $this->shorten->truncateMarkup('<p>PHP 🐘 éléphant 🐘</p>', 7, '…', true);
+        $this->assertEquals('<p>PHP 🐘 é…</p>', $result);
+
+        // Complex emoji with modifiers
+        $result = $this->shorten->truncateMarkup('<p>👨‍👩‍👧‍👦 family 👋🏽 wave</p>', 3);
+        $this->assertEquals('<p>👨‍👩‍</p>…', $result);
     }
 
-    public function testTruncateWithOnlyTags(): void
+    // === Wordsafe Truncation Tests ===
+
+    public function testWordsafeTruncation(): void
     {
-        $shorten = new Shorten();
-        $this->assertEquals(
-            '<div><span></span></div>',
-            $shorten->truncateMarkup('<div><span></span></div>', 10)
-        );
+        $markup = '<a href="https://example.com/">Go to example site</a>';
+
+        // Regular vs wordsafe
+        $regular = $this->shorten->truncateMarkup($markup, 10, '…', false, false);
+        $wordsafe = $this->shorten->truncateMarkup($markup, 10, '…', false, true);
+        $this->assertEquals('<a href="https://example.com/">Go to exam</a>…', $regular);
+        $this->assertEquals('<a href="https://example.com/">Go to</a>…', $wordsafe);
     }
 
-    public function testTruncateWithVeryLongText(): void
+    public function testWordsafeWithDifferentDelimiters(): void
     {
-        $shorten = new Shorten();
-        $longText = '<p>' . str_repeat('Lorem ipsum dolor sit amet ', 100) . '</p>';
-        $result = $shorten->truncateMarkup($longText, 50);
-        $this->assertLessThan(mb_strlen($longText), mb_strlen($result));
-        $this->assertStringEndsWith('…', strip_tags($result));
+        // Default space delimiter
+        $result = $this->shorten->truncateMarkup('<p>Word1   Word2   Word3</p>', 15, '...', true, true, ' ');
+        $this->assertEquals('<p>Word1   Word2 ...</p>', $result);
+
+        // Custom delimiters
+        $result = $this->shorten->truncateMarkup('<p>One,Two,Three,Four</p>', 12, '...', true, true, ',');
+        $this->assertEquals('<p>One,Two...</p>', $result);
+
+        $result = $this->shorten->truncateMarkup('<p>One-Two-Three-Four</p>', 12, '...', true, true, '-');
+        $this->assertEquals('<p>One-Two...</p>', $result);
     }
 
-    public function testTruncatesMarkupWithDelimiterInTag(): void
+    public function testWordsafeEdgeCases(): void
     {
-        $shorten = new Shorten();
-        $this->assertEquals(
-            'Hello world <a href="#" rel="nofollow">li...</a>',
-            $shorten->truncateMarkup('Hello world <a href="#" rel="nofollow">link</a>', 14, '...', true, false)
-        );
+        // No delimiter found
+        $result = $this->shorten->truncateMarkup('<p>Supercalifragilisticexpialidocious</p>', 10, '...', true, true);
+        $this->assertEquals('<p>Supercalif...</p>', $result);
+
+        // Delimiter at end
+        $result = $this->shorten->truncateMarkup('<p>Hello world </p>', 12, '...', true, true);
+        $this->assertEquals('<p>Hello world </p>', $result);
+
+        // With incomplete tags
+        $result = $this->shorten->truncateMarkup('<p>Hello <strong>world test</strong></p>', 10, '...', true, true);
+        $this->assertEquals('<p>Hello...</strong></p>', $result);
     }
 
-    public function testTruncatesMarkupWithDelimiterInTagWordSafe(): void
-    {
-        $shorten = new Shorten();
-        $this->assertEquals(
-            'Hello world...',
-            $shorten->truncateMarkup('Hello world <a href="#" rel="nofollow">link</a>', 14, '...', true, true)
-        );
-    }
+    // === Parameter Validation Tests ===
 
     public function testParameterValidation(): void
     {
-        $shorten = new Shorten();
-
-        // Test negative length
-        $this->assertEquals(
-            '…',
-            $shorten->truncateMarkup('<p>Hello world</p>', -5)
-        );
-
-        // Test zero length
-        $this->assertEquals(
-            '…',
-            $shorten->truncateMarkup('<p>Hello world</p>', 0)
-        );
-
-        // Test zero length with appendix inside
-        $this->assertEquals(
-            '',
-            $shorten->truncateMarkup('<p>Hello world</p>', 0, '...', true)
-        );
+        // Negative and zero lengths are handled
+        $this->assertEquals('…', $this->shorten->truncateMarkup('<p>Hello world</p>', -5));
+        $this->assertEquals('…', $this->shorten->truncateMarkup('<p>Hello world</p>', 0));
     }
 
-    public function testEmptyDelimiterThrowsException(): void
+    public function testEmptyDelimiterException(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Delimiter cannot be empty for wordsafe truncation');
 
-        $shorten = new Shorten();
-        $shorten->truncateMarkup('<p>Hello world</p>', 10, '...', false, true, '');
+        $this->shorten->truncateMarkup('<p>Hello world</p>', 10, '...', false, true, '');
     }
 
-    public function testMalformedHtmlHandling(): void
+    // === Performance and Complex Content Tests ===
+
+    public function testPerformanceWithLargeContent(): void
     {
-        $shorten = new Shorten();
+        // Large content with many tags
+        $largeTags = str_repeat('<span>word</span> ', 1000);
+        $result = $this->shorten->truncateMarkup("<div>$largeTags</div>", 50);
+        $this->assertLessThan(250, mb_strlen($result));
 
-        // Test mismatched closing tag - should handle gracefully
-        $result = $shorten->truncateMarkup('<div><p>Hello</div></p>', 10);
-        $this->assertStringContainsString('Hello', $result);
+        // Performance test
+        $largeText = '<p>' . str_repeat('Lorem ipsum dolor sit amet. ', 500) . '</p>';
+        $start = microtime(true);
+        $result = $this->shorten->truncateMarkup($largeText, 100);
+        $end = microtime(true);
+        $this->assertLessThan(1.0, $end - $start);
+        $this->assertStringEndsWith('…', $result);
+    }
 
-        // Test unclosed tag
-        $result = $shorten->truncateMarkup('<div><p>Hello world', 8);
-        $this->assertEquals('<div><p>Hello wo</p></div>…', $result);
+    public function testVeryLongContent(): void
+    {
+        $longText = '<p>' . str_repeat('Lorem ipsum dolor sit amet ', 100) . '</p>';
+        $result = $this->shorten->truncateMarkup($longText, 50);
+        $this->assertLessThan(mb_strlen($longText), mb_strlen($result));
+        $this->assertStringEndsWith('…', strip_tags($result));
+    }
+
+    public function testWhitespaceHandling(): void
+    {
+        // Leading/trailing whitespace
+        $result = $this->shorten->truncateMarkup('<p>   Hello\nworld test</p>', 8);
+        $this->assertEquals('<p>   Hello</p>…', $result);
+
+        // Tabs and newlines
+        $result = $this->shorten->truncateMarkup("<p>\tHello\nworld\r\ntest</p>", 10);
+        $this->assertEquals("<p>\tHello\nwor</p>…", $result);
+    }
+
+    // === Complex Real-World Scenarios ===
+
+    public function testMixedContentScenarios(): void
+    {
+        // Tags, entities, unicode, emoji combined
+        $markup = '<p>Hello &amp; 世界 🌍 <strong>bold &lt;text&gt;</strong> normal 🚀</p>';
+        $result = $this->shorten->truncateMarkup($markup, 15, '⋯', true);
+        $this->assertEquals('<p>Hello &amp; 世界 🌍 <strong>bo⋯</strong></p>', $result);
+
+        // Real-world complex example
+        $markup = '<article><h2>Title éléphant 🐘</h2><p>Paragraph with <a href="#">link &amp; more</a> content.</p></article>';
+        $result = $this->shorten->truncateMarkup($markup, 20, '…', false, true);
+        $this->assertEquals('<article><h2>Title &eacute;l&eacute;phant</p></article>…', $result);
+    }
+
+    public function testDeepNestingWithAppendix(): void
+    {
+        $result = $this->shorten->truncateMarkup(
+            '<div><section><article><p>Content</p></article></section></div>',
+            5,
+            '***',
+            true
+        );
+        $this->assertEquals('<div><section><article><p>Conte***</p></article></section></div>', $result);
+    }
+
+    public function testComplexTagRecalculation(): void
+    {
+        $markup = '<div><p><strong>Word1 Word2</strong> <em>Word3 Word4</em></p></div>';
+        $result = $this->shorten->truncateMarkup($markup, 12, '...', true, true);
+        $this->assertEquals('<div><p><strong>Word1 Word2</strong>...</em></p></div>', $result);
     }
 }
