@@ -85,6 +85,28 @@ final class Shorten
     }
 
     /**
+     * Get the length of a string, using grapheme_strlen if available for proper emoji support.
+     */
+    private function getStringLength(string $string): int
+    {
+        return extension_loaded('intl') ? grapheme_strlen($string) : mb_strlen($string);
+    }
+
+    /**
+     * Get a substring, using grapheme_substr if available for proper emoji support.
+     */
+    private function getSubstring(string $string, int $start, ?int $length = null): string
+    {
+        if (extension_loaded('intl')) {
+            $result = $length !== null ? grapheme_substr($string, $start, $length) : grapheme_substr($string, $start);
+            return $result !== false ? $result : '';
+        }
+
+        $result = $length !== null ? mb_substr($string, $start, $length) : mb_substr($string, $start);
+        return $result !== false ? $result : '';
+    }
+
+    /**
      * Validate input parameters.
      */
     private function validateParameters(int &$length, bool $wordsafe, string $delimiter): void
@@ -127,7 +149,7 @@ final class Shorten
      */
     private function isMarkupShortEnough(string $markup, int $length): bool
     {
-        $plainTextLength = mb_strlen(trim(strip_tags($markup)));
+        $plainTextLength = $this->getStringLength(trim(strip_tags($markup)));
         return $plainTextLength <= $length;
     }
 
@@ -136,13 +158,29 @@ final class Shorten
      */
     private function normalizeMarkup(string $markup): string
     {
-        // to avoid UTF-8 multibyte glitches we need entities,
-        // but no special characters for tags or existing entities
-        return str_replace(
+        // Temporarily replace ZWJ sequences to prevent htmlentities from converting them
+        $zwjPlaceholders = [];
+        $zwjCounter = 0;
+
+        // Find all ZWJ sequences and replace them temporarily
+        $markup = preg_replace_callback('/[\x{200D}]/u', function ($match) use (&$zwjPlaceholders, &$zwjCounter) {
+            $placeholder = "___ZWJ_{$zwjCounter}___";
+            $zwjPlaceholders[$placeholder] = $match[0];
+            $zwjCounter++;
+            return $placeholder;
+        }, $markup);
+
+        // Apply the original normalization
+        $normalized = str_replace(
             ['&lt;', '&gt;', '&amp;'],
             ['<', '>', '&'],
             htmlentities($markup, ENT_NOQUOTES, 'UTF-8')
         );
+
+        // Restore ZWJ characters
+        $normalized = str_replace(array_keys($zwjPlaceholders), array_values($zwjPlaceholders), $normalized);
+
+        return $normalized;
     }
 
     /**
@@ -154,7 +192,7 @@ final class Shorten
         $lengthOutput = 0;
         $position = 0;
         $tags = [];
-        $markupLength = mb_strlen($markup);
+        $markupLength = mb_strlen($markup); // Keep mb_strlen for byte position
 
         // loop through text
         while (
@@ -171,13 +209,13 @@ final class Shorten
 
             // add text leading up to the tag or entity
             $text = substr($markup, $position, $positionTag - $position);
-            if ($lengthOutput + mb_strlen($text) > $length) {
-                $truncated .= mb_substr($text, 0, $length - $lengthOutput);
+            if ($lengthOutput + $this->getStringLength($text) > $length) {
+                $truncated .= $this->getSubstring($text, 0, $length - $lengthOutput);
                 $lengthOutput = $length;
                 break;
             }
             $truncated .= $text;
-            $lengthOutput += mb_strlen($text);
+            $lengthOutput += $this->getStringLength($text);
 
             $result = $this->processTagOrEntity($tag, $match, $tags, $positionTag);
             if ($result['skip']) {
@@ -191,12 +229,13 @@ final class Shorten
             }
 
             // continue after the tag
-            $position = $positionTag + mb_strlen($tag);
+            $position = $positionTag + mb_strlen($tag); // Keep mb_strlen for byte position
         }
 
         // add any remaining text
         if ($lengthOutput < $length && $position < $markupLength) {
-            $truncated .= mb_substr($markup, $position, $length - $lengthOutput);
+            $remainingText = substr($markup, $position);
+            $truncated .= $this->getSubstring($remainingText, 0, $length - $lengthOutput);
         }
 
         return ['text' => $truncated, 'tags' => $tags];
@@ -275,7 +314,7 @@ final class Shorten
             return $truncationResult;
         }
 
-        // cut at delimiter position
+        // cut at delimiter position (use mb_substr for byte-accurate cutting)
         $truncated = mb_substr($truncated, 0, $delimiterPosition);
 
         // ensure we do not have incomplete tags after wordsafe truncation
