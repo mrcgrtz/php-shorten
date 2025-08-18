@@ -221,7 +221,7 @@ final class ShortenTest extends TestCase
 
         // With incomplete tags
         $result = $this->shorten->truncateMarkup('<p>Hello <strong>world test</strong></p>', 10, '...', true, true);
-        $this->assertEquals('<p>Hello...</strong></p>', $result);
+        $this->assertEquals('<p>Hello...</p>', $result);
     }
 
     // === Parameter Validation Tests ===
@@ -290,7 +290,7 @@ final class ShortenTest extends TestCase
         // Real-world complex example
         $markup = '<article><h2>Title éléphant 🐘</h2><p>Paragraph with <a href="#">link &amp; more</a> content.</p></article>';
         $result = $this->shorten->truncateMarkup($markup, 20, '…', false, true);
-        $this->assertEquals('<article><h2>Title &eacute;l&eacute;phant</p></article>…', $result);
+        $this->assertEquals('<article><h2>Title &eacute;l&eacute;phant</h2></article>…', $result);
     }
 
     public function testDeepNestingWithAppendix(): void
@@ -308,6 +308,6 @@ final class ShortenTest extends TestCase
     {
         $markup = '<div><p><strong>Word1 Word2</strong> <em>Word3 Word4</em></p></div>';
         $result = $this->shorten->truncateMarkup($markup, 12, '...', true, true);
-        $this->assertEquals('<div><p><strong>Word1 Word2</strong>...</em></p></div>', $result);
+        $this->assertEquals('<div><p><strong>Word1 Word2</strong>...</p></div>', $result);
     }
 }
