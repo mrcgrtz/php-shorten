@@ -49,6 +49,16 @@ final class Shorten
         bool $wordsafe = false,
         string $delimiter = ' '
     ): string {
+        // immediately return if empty
+        if (trim($markup) === '') {
+            return $markup;
+        }
+
+        // immediately return if truncated text length is 0
+        if ($length === 0) {
+            return $appendixInside ? '' : $appendix;
+        }
+
         $truncated = '';
         $lengthOutput = 0;
         $position = 0;
