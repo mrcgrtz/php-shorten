@@ -86,6 +86,9 @@ final class Shorten
 
     /**
      * Get the length of a string, using grapheme_strlen if available for proper emoji support.
+     *
+     * @param string $string The string to measure
+     * @return int The length of the string in grapheme units
      */
     private function getStringLength(string $string): int
     {
@@ -94,6 +97,11 @@ final class Shorten
 
     /**
      * Get a substring, using grapheme_substr if available for proper emoji support.
+     *
+     * @param string $string The input string
+     * @param int $start The start position
+     * @param int|null $length The maximum length (null for no limit)
+     * @return string The substring
      */
     private function getSubstring(string $string, int $start, ?int $length = null): string
     {
@@ -108,6 +116,11 @@ final class Shorten
 
     /**
      * Validate input parameters.
+     *
+     * @param int &$length Reference to length parameter (will be modified if negative)
+     * @param bool $wordsafe Whether wordsafe truncation is enabled
+     * @param string $delimiter Delimiter for wordsafe truncation
+     * @throws \InvalidArgumentException When delimiter is empty for wordsafe truncation
      */
     private function validateParameters(int &$length, bool $wordsafe, string $delimiter): void
     {
@@ -122,6 +135,10 @@ final class Shorten
 
     /**
      * Check if we should return early without processing.
+     *
+     * @param string $markup The input markup
+     * @param int $length The target length
+     * @return bool True if should return early
      */
     private function shouldReturnEarly(string $markup, int $length): bool
     {
@@ -130,6 +147,12 @@ final class Shorten
 
     /**
      * Handle early return cases.
+     *
+     * @param string $markup The input markup
+     * @param int $length The target length
+     * @param string $appendix The appendix to add
+     * @param bool $appendixInside Whether to place appendix inside tags
+     * @return string The result for early return
      */
     private function handleEarlyReturn(
         string $markup,
@@ -146,6 +169,10 @@ final class Shorten
 
     /**
      * Check if markup is short enough and does not need truncation.
+     *
+     * @param string $markup The markup to check
+     * @param int $length The maximum allowed length
+     * @return bool True if markup is short enough
      */
     private function isMarkupShortEnough(string $markup, int $length): bool
     {
@@ -155,6 +182,9 @@ final class Shorten
 
     /**
      * Normalize markup for processing.
+     *
+     * @param string $markup The original markup
+     * @return string The normalized markup with preserved emoji sequences
      */
     private function normalizeMarkup(string $markup): string
     {
@@ -185,6 +215,10 @@ final class Shorten
 
     /**
      * Perform the main truncation logic.
+     *
+     * @param string $markup The normalized markup to truncate
+     * @param int $length The maximum length
+     * @return array{text: string, tags: string[]} Array containing truncated text and open tags
      */
     private function performTruncation(string $markup, int $length): array
     {
@@ -243,6 +277,12 @@ final class Shorten
 
     /**
      * Process a single tag or entity.
+     *
+     * @param string $tag The tag or entity to process
+     * @param array<int, array{0: string, 1: int}> $match Regex match result from preg_match
+     * @param string[] &$tags Reference to the stack of open tags
+     * @param int $positionTag Position of the tag in the markup
+     * @return array{skip: bool, incrementLength?: bool, newPosition?: int} Processing result
      */
     private function processTagOrEntity(string $tag, array $match, array &$tags, int $positionTag): array
     {
@@ -269,6 +309,12 @@ final class Shorten
 
     /**
      * Handle closing tag processing.
+     *
+     * @param string $tagName The name of the closing tag
+     * @param string[] &$tags Reference to the stack of open tags
+     * @param string $tag The complete tag string
+     * @param int $positionTag Position of the tag in the markup
+     * @return array{skip: bool, incrementLength?: bool, newPosition?: int} Processing result
      */
     private function handleClosingTag(string $tagName, array &$tags, string $tag, int $positionTag): array
     {
@@ -289,6 +335,10 @@ final class Shorten
 
     /**
      * Check if a tag is self-closing.
+     *
+     * @param string $tag The complete tag string
+     * @param string $tagName The tag name
+     * @return bool True if the tag is self-closing
      */
     private function isSelfClosingTag(string $tag, string $tagName): bool
     {
@@ -303,6 +353,10 @@ final class Shorten
 
     /**
      * Apply wordsafe truncation logic.
+     *
+     * @param array{text: string, tags: string[]} $truncationResult Result from performTruncation
+     * @param string $delimiter Delimiter for word boundaries
+     * @return array{text: string, tags: string[]} Updated truncation result
      */
     private function applyWordsafeTruncation(array $truncationResult, string $delimiter): array
     {
@@ -330,6 +384,9 @@ final class Shorten
 
     /**
      * Check if truncated text has incomplete tags.
+     *
+     * @param string $truncated The truncated text to check
+     * @return bool True if there are incomplete tags
      */
     private function hasIncompleteTag(string $truncated): bool
     {
@@ -342,6 +399,9 @@ final class Shorten
 
     /**
      * Remove incomplete tag from truncated text.
+     *
+     * @param string $truncated The text with incomplete tag
+     * @return string The text with incomplete tag removed
      */
     private function removeIncompleteTag(string $truncated): string
     {
@@ -351,6 +411,9 @@ final class Shorten
 
     /**
      * Recalculate which tags are still open after wordsafe truncation.
+     *
+     * @param string $truncated The truncated text to analyze
+     * @return string[] Array of tag names that are still open
      */
     private function recalculateOpenTags(string $truncated): array
     {
@@ -391,6 +454,12 @@ final class Shorten
 
     /**
      * Finalize truncation by adding appendix and closing tags.
+     *
+     * @param array{text: string, tags: string[]} $truncationResult Result from truncation
+     * @param string $appendix The appendix text to add
+     * @param bool $appendixInside Whether to place appendix inside tags
+     * @param bool $hasEntities Whether the original markup contained HTML entities
+     * @return string The final truncated markup
      */
     private function finalizeTruncation(
         array $truncationResult,
