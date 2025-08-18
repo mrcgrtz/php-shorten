@@ -75,8 +75,11 @@ final class Shorten
         // check for existing entities
         $hasEntities = preg_match(self::ENTITIES_PATTERN, $markup);
 
+        // cache plain text length for performance
+        $plainTextLength = mb_strlen(trim(strip_tags($markup)));
+
         // just return the markup if text does not need be truncated
-        if (mb_strlen(trim(strip_tags($markup))) <= $length) {
+        if ($plainTextLength <= $length) {
             return $markup;
         }
 
@@ -87,6 +90,9 @@ final class Shorten
             ['<', '>', '&'],
             htmlentities($markup, ENT_NOQUOTES, 'UTF-8')
         );
+
+        // cache markup length for performance
+        $markupLength = mb_strlen($markup);
 
         // loop thru text
         while (
@@ -144,7 +150,7 @@ final class Shorten
         }
 
         // add any remaining text
-        if ($lengthOutput < $length && $position < mb_strlen($markup)) {
+        if ($lengthOutput < $length && $position < $markupLength) {
             $truncated .= mb_substr($markup, $position, $length - $lengthOutput);
         }
 
