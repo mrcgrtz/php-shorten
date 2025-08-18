@@ -6,8 +6,13 @@ namespace Marcgoertz\Shorten;
 
 final class Shorten
 {
+    /** @var string Regex pattern for matching HTML entities */
     private const ENTITIES_PATTERN = '/&#?[a-zA-Z0-9]+;/i';
+
+    /** @var string Regex pattern for matching HTML tags and entities */
     private const TAGS_AND_ENTITIES_PATTERN = '/<\/?([a-z0-9]+)[^>]*>|&#?[a-zA-Z0-9]+;/i';
+
+    /** @var string[] Self-closing HTML tags */
     private const SELF_CLOSING_TAGS = [
         'area',
         'base',
@@ -49,7 +54,41 @@ final class Shorten
         bool $wordsafe = false,
         string $delimiter = ' '
     ): string {
-        // validate parameters
+        $this->validateParameters($length, $wordsafe, $delimiter);
+
+        if ($this->shouldReturnEarly($markup, $length)) {
+            return $this->handleEarlyReturn($markup, $length, $appendix, $appendixInside);
+        }
+
+        $hasEntities = (bool) preg_match(self::ENTITIES_PATTERN, $markup);
+
+        if ($this->isMarkupShortEnough($markup, $length)) {
+            return $markup;
+        }
+
+        $normalizedMarkup = $this->normalizeMarkup($markup);
+        $truncationResult = $this->performTruncation($normalizedMarkup, $length);
+
+        if ($wordsafe) {
+            $truncationResult = $this->applyWordsafeTruncation(
+                $truncationResult,
+                $delimiter
+            );
+        }
+
+        return $this->finalizeTruncation(
+            $truncationResult,
+            $appendix,
+            $appendixInside,
+            $hasEntities
+        );
+    }
+
+    /**
+     * Validate input parameters.
+     */
+    private function validateParameters(int &$length, bool $wordsafe, string $delimiter): void
+    {
         if ($length < 0) {
             $length = 0;
         }
@@ -57,44 +96,67 @@ final class Shorten
         if ($wordsafe && $delimiter === '') {
             throw new \InvalidArgumentException('Delimiter cannot be empty for wordsafe truncation');
         }
+    }
 
-        // return early for edge cases
+    /**
+     * Check if we should return early without processing.
+     */
+    private function shouldReturnEarly(string $markup, int $length): bool
+    {
+        return trim($markup) === '' || $length === 0;
+    }
+
+    /**
+     * Handle early return cases.
+     */
+    private function handleEarlyReturn(
+        string $markup,
+        int $length,
+        string $appendix,
+        bool $appendixInside
+    ): string {
         if (trim($markup) === '') {
             return $markup;
         }
 
-        if ($length === 0) {
-            return $appendixInside ? '' : $appendix;
-        }
+        return $appendixInside ? '' : $appendix;
+    }
 
-        $truncated = '';
-        $lengthOutput = 0;
-        $position = 0;
-        $tags = [];
-
-        // check for existing entities
-        $hasEntities = preg_match(self::ENTITIES_PATTERN, $markup);
-
-        // cache plain text length for performance
+    /**
+     * Check if markup is short enough and does not need truncation.
+     */
+    private function isMarkupShortEnough(string $markup, int $length): bool
+    {
         $plainTextLength = mb_strlen(trim(strip_tags($markup)));
+        return $plainTextLength <= $length;
+    }
 
-        // just return the markup if text does not need be truncated
-        if ($plainTextLength <= $length) {
-            return $markup;
-        }
-
+    /**
+     * Normalize markup for processing.
+     */
+    private function normalizeMarkup(string $markup): string
+    {
         // to avoid UTF-8 multibyte glitches we need entities,
         // but no special characters for tags or existing entities
-        $markup = str_replace(
+        return str_replace(
             ['&lt;', '&gt;', '&amp;'],
             ['<', '>', '&'],
             htmlentities($markup, ENT_NOQUOTES, 'UTF-8')
         );
+    }
 
-        // cache markup length for performance
+    /**
+     * Perform the main truncation logic.
+     */
+    private function performTruncation(string $markup, int $length): array
+    {
+        $truncated = '';
+        $lengthOutput = 0;
+        $position = 0;
+        $tags = [];
         $markupLength = mb_strlen($markup);
 
-        // loop thru text
+        // loop through text
         while (
             $lengthOutput < $length &&
             preg_match(
@@ -117,41 +179,15 @@ final class Shorten
             $truncated .= $text;
             $lengthOutput += mb_strlen($text);
 
-            // add tags and entities
-            if ($tag[0] === '&') {
-                // handle the entity...
-                $truncated .= $tag;
-                // ... which is only one character
+            $result = $this->processTagOrEntity($tag, $match, $tags, $positionTag);
+            if ($result['skip']) {
+                $position = $result['newPosition'];
+                continue;
+            }
+
+            $truncated .= $tag;
+            if ($result['incrementLength']) {
                 $lengthOutput++;
-            } else {
-                // handle the tag
-                $tagName = $match[1][0];
-                if ($tag[1] === '/') {
-                    // this is a closing tag
-                    $openingTag = array_pop($tags);
-                    // check that tags are properly nested
-                    if ($openingTag !== $tagName) {
-                        // Malformed HTML - attempt to recover by ignoring the mismatched closing tag
-                        // Push the opening tag back and continue
-                        if ($openingTag !== null) {
-                            $tags[] = $openingTag;
-                        }
-                        // Skip this malformed closing tag
-                        $position = $positionTag + mb_strlen($tag);
-                        continue;
-                    }
-                    $truncated .= $tag;
-                } elseif ($tag[mb_strlen($tag) - 2] === '/') {
-                    // self-closing tag in XML dialect
-                    $truncated .= $tag;
-                } elseif (in_array($tagName, self::SELF_CLOSING_TAGS)) {
-                    // self-closing tag in non-XML dialect
-                    $truncated .= $tag;
-                } else {
-                    // opening tag
-                    $truncated .= $tag;
-                    $tags[] = $tagName;
-                }
             }
 
             // continue after the tag
@@ -163,59 +199,162 @@ final class Shorten
             $truncated .= mb_substr($markup, $position, $length - $lengthOutput);
         }
 
-        // if the words shouldn't be cut in the middle...
-        if ($wordsafe) {
-            // ... search the last occurance of the delimiter...
-            $spacepos = mb_strrpos($truncated, $delimiter);
-            if ($spacepos !== false) {
-                // ... and cut the text in this position
-                $truncated = mb_substr($truncated, 0, $spacepos);
+        return ['text' => $truncated, 'tags' => $tags];
+    }
 
-                // After wordsafe truncation, we need to ensure we don't have incomplete tags
-                // Check if we cut in the middle of a tag by counting < and >
-                $lastOpenBracket = mb_strrpos($truncated, '<');
-                $lastCloseBracket = mb_strrpos($truncated, '>');
+    /**
+     * Process a single tag or entity.
+     */
+    private function processTagOrEntity(string $tag, array $match, array &$tags, int $positionTag): array
+    {
+        if ($tag[0] === '&') {
+            // handle the entity (counts as one character)
+            return ['skip' => false, 'incrementLength' => true];
+        }
 
-                // If the last < comes after the last >, we have an incomplete tag
-                if ($lastOpenBracket !== false && ($lastCloseBracket === false || $lastOpenBracket > $lastCloseBracket)) {
-                    // Remove the incomplete tag and everything after it
-                    $truncated = mb_substr($truncated, 0, $lastOpenBracket);
+        // handle the tag
+        $tagName = $match[1][0];
 
-                    // Trim any trailing whitespace
-                    $truncated = rtrim($truncated);
+        if ($tag[1] === '/') {
+            return $this->handleClosingTag($tagName, $tags, $tag, $positionTag);
+        }
 
-                    // Clear the tags array since we need to recalculate
-                    $tags = [];
+        if ($this->isSelfClosingTag($tag, $tagName)) {
+            return ['skip' => false, 'incrementLength' => false];
+        }
 
-                    // Re-parse the clean truncated text to find which tags are still open
-                    $tempPosition = 0;
-                    while (
-                        preg_match(
-                            self::TAGS_AND_ENTITIES_PATTERN,
-                            $truncated,
-                            $match,
-                            PREG_OFFSET_CAPTURE,
-                            $tempPosition
-                        )
-                    ) {
-                        list($tag, $positionTag) = $match[0];
+        // opening tag
+        $tags[] = $tagName;
+        return ['skip' => false, 'incrementLength' => false];
+    }
 
-                        if ($tag[0] !== '&') {
-                            $tagName = $match[1][0];
-                            if (mb_strlen($tag) > 1 && $tag[1] === '/') {
-                                // Closing tag
-                                array_pop($tags);
-                            } elseif (!(mb_strlen($tag) >= 2 && $tag[mb_strlen($tag) - 2] === '/' || in_array($tagName, self::SELF_CLOSING_TAGS))) {
-                                // Opening tag (not self-closing)
-                                $tags[] = $tagName;
-                            }
-                        }
+    /**
+     * Handle closing tag processing.
+     */
+    private function handleClosingTag(string $tagName, array &$tags, string $tag, int $positionTag): array
+    {
+        $openingTag = array_pop($tags);
 
-                        $tempPosition = $positionTag + mb_strlen($tag);
-                    }
+        // check that tags are properly nested
+        if ($openingTag !== $tagName) {
+            // Malformed HTML - attempt to recover by ignoring the mismatched closing tag
+            if ($openingTag !== null) {
+                $tags[] = $openingTag;
+            }
+            // Skip this malformed closing tag
+            return ['skip' => true, 'newPosition' => $positionTag + mb_strlen($tag)];
+        }
+
+        return ['skip' => false, 'incrementLength' => false];
+    }
+
+    /**
+     * Check if a tag is self-closing.
+     */
+    private function isSelfClosingTag(string $tag, string $tagName): bool
+    {
+        // self-closing tag in XML dialect
+        if ($tag[mb_strlen($tag) - 2] === '/') {
+            return true;
+        }
+
+        // self-closing tag in non-XML dialect
+        return in_array($tagName, self::SELF_CLOSING_TAGS);
+    }
+
+    /**
+     * Apply wordsafe truncation logic.
+     */
+    private function applyWordsafeTruncation(array $truncationResult, string $delimiter): array
+    {
+        $truncated = $truncationResult['text'];
+        $tags = $truncationResult['tags'];
+
+        $delimiterPosition = mb_strrpos($truncated, $delimiter);
+        if ($delimiterPosition === false) {
+            return $truncationResult;
+        }
+
+        // cut at delimiter position
+        $truncated = mb_substr($truncated, 0, $delimiterPosition);
+
+        // ensure we do not have incomplete tags after wordsafe truncation
+        if ($this->hasIncompleteTag($truncated)) {
+            $truncated = $this->removeIncompleteTag($truncated);
+            $tags = $this->recalculateOpenTags($truncated);
+        }
+
+        return ['text' => $truncated, 'tags' => $tags];
+    }
+
+    /**
+     * Check if truncated text has incomplete tags.
+     */
+    private function hasIncompleteTag(string $truncated): bool
+    {
+        $lastOpenBracket = mb_strrpos($truncated, '<');
+        $lastCloseBracket = mb_strrpos($truncated, '>');
+
+        return $lastOpenBracket !== false &&
+               ($lastCloseBracket === false || $lastOpenBracket > $lastCloseBracket);
+    }
+
+    /**
+     * Remove incomplete tag from truncated text.
+     */
+    private function removeIncompleteTag(string $truncated): string
+    {
+        $lastOpenBracket = mb_strrpos($truncated, '<');
+        return rtrim(mb_substr($truncated, 0, $lastOpenBracket));
+    }
+
+    /**
+     * Recalculate which tags are still open after wordsafe truncation.
+     */
+    private function recalculateOpenTags(string $truncated): array
+    {
+        $tags = [];
+        $tempPosition = 0;
+
+        while (
+            preg_match(
+                self::TAGS_AND_ENTITIES_PATTERN,
+                $truncated,
+                $match,
+                PREG_OFFSET_CAPTURE,
+                $tempPosition
+            )
+        ) {
+            list($tag, $positionTag) = $match[0];
+
+            if ($tag[0] !== '&') {
+                $tagName = $match[1][0];
+                if (mb_strlen($tag) > 1 && $tag[1] === '/') {
+                    // Closing tag
+                    array_pop($tags);
+                } elseif (!$this->isSelfClosingTag($tag, $tagName)) {
+                    // Opening tag (not self-closing)
+                    $tags[] = $tagName;
                 }
             }
+
+            $tempPosition = $positionTag + mb_strlen($tag);
         }
+
+        return $tags;
+    }
+
+    /**
+     * Finalize truncation by adding appendix and closing tags.
+     */
+    private function finalizeTruncation(
+        array $truncationResult,
+        string $appendix,
+        bool $appendixInside,
+        bool $hasEntities
+    ): string {
+        $truncated = $truncationResult['text'];
+        $tags = $truncationResult['tags'];
 
         // add appendix to last tag content
         if ($appendixInside) {
@@ -228,14 +367,10 @@ final class Shorten
         }
 
         // decode entities again if markup did not contain any entities
-        if ($hasEntities === 0) {
+        if (!$hasEntities) {
             $truncated = html_entity_decode($truncated, ENT_COMPAT, 'UTF-8');
         }
 
-        if ($appendixInside) {
-            return $truncated;
-        } else {
-            return $truncated . $appendix;
-        }
+        return $appendixInside ? $truncated : $truncated . $appendix;
     }
 }
