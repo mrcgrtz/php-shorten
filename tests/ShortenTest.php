@@ -106,4 +106,76 @@ final class ShortenTest extends TestCase
             $shorten->truncateMarkup('<h1>Example Heading</h1>', 7)
         );
     }
+
+    public function testTruncateWithDifferentAppendix(): void
+    {
+        $shorten = new Shorten();
+        $this->assertEquals(
+            '<p>Hello world...</p>',
+            $shorten->truncateMarkup('<p>Hello world test</p>', 11, '...', true)
+        );
+    }
+
+    public function testTruncateWithNoAppendix(): void
+    {
+        $shorten = new Shorten();
+        $this->assertEquals(
+            '<p>Hello</p>',
+            $shorten->truncateMarkup('<p>Hello world</p>', 5, '', true)
+        );
+    }
+
+    public function testTruncateWithZeroLength(): void
+    {
+        $shorten = new Shorten();
+        $this->assertEquals(
+            '…',
+            $shorten->truncateMarkup('<p>Hello world</p>', 0)
+        );
+    }
+
+    public function testTruncateWithNegativeLength(): void
+    {
+        $shorten = new Shorten();
+        $this->assertEquals(
+            '…',
+            $shorten->truncateMarkup('<p>Hello world</p>', -5)
+        );
+    }
+
+    public function testTruncateEmptyString(): void
+    {
+        $shorten = new Shorten();
+        $this->assertEquals(
+            '',
+            $shorten->truncateMarkup('', 10)
+        );
+    }
+
+    public function testTruncateWithNestedTags(): void
+    {
+        $shorten = new Shorten();
+        $this->assertEquals(
+            '<div><p><strong>Hello</strong></p></div>…',
+            $shorten->truncateMarkup('<div><p><strong>Hello world test</strong></p></div>', 5)
+        );
+    }
+
+    public function testTruncateWithOnlyTags(): void
+    {
+        $shorten = new Shorten();
+        $this->assertEquals(
+            '<div><span></span></div>',
+            $shorten->truncateMarkup('<div><span></span></div>', 10)
+        );
+    }
+
+    public function testTruncateWithVeryLongText(): void
+    {
+        $shorten = new Shorten();
+        $longText = '<p>' . str_repeat('Lorem ipsum dolor sit amet ', 100) . '</p>';
+        $result = $shorten->truncateMarkup($longText, 50);
+        $this->assertLessThan(mb_strlen($longText), mb_strlen($result));
+        $this->assertStringEndsWith('…', strip_tags($result));
+    }
 }
