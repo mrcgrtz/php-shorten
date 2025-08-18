@@ -49,12 +49,20 @@ final class Shorten
         bool $wordsafe = false,
         string $delimiter = ' '
     ): string {
-        // immediately return if empty
+        // validate parameters
+        if ($length < 0) {
+            $length = 0;
+        }
+
+        if ($wordsafe && $delimiter === '') {
+            throw new \InvalidArgumentException('Delimiter cannot be empty for wordsafe truncation');
+        }
+
+        // return early for edge cases
         if (trim($markup) === '') {
             return $markup;
         }
 
-        // immediately return if truncated text length is 0
         if ($length === 0) {
             return $appendixInside ? '' : $appendix;
         }
