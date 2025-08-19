@@ -104,6 +104,10 @@ $result = $shorten->truncateMarkup('<b>Caf&eacute; &amp; Restaurant</b>', 8);
 * ✅ Wordsafe truncation to avoid cutting words in the middle
 * ✅ Configurable appendix text and placement
 
+## Related
+
+* [`marcgoertz/shorten-twig`](https://github.com/mrcgrtz/php-shorten-twig) is a Twig extension for this package.
+
 ## License
 
 MIT © [Marc Görtz](https://marcgoertz.de/)

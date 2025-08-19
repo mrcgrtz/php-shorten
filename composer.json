@@ -29,6 +29,9 @@
         "psr-0": {"Marcgoertz\\Shorten\\": ""},
         "psr-4": {"Marcgoertz\\Shorten\\": ""}
     },
+    "autoload-dev": {
+        "psr-4": {"Marcgoertz\\Shorten\\": "tests/"}
+    },
     "scripts": {
         "fix": "phpcbf --standard=PSR12 --ignore=vendor ./",
         "lint": "phpcs --standard=PSR12 --ignore=vendor --no-cache ./",
