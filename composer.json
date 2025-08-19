@@ -1,6 +1,6 @@
 {
     "name": "marcgoertz/shorten",
-    "description": "Provides truncation functions.",
+    "description": "Safely truncate HTML markup while preserving tags, handling entities, and supporting Unicode/emoji with optional word-safe truncation",
     "homepage": "https://github.com/mrcgrtz/php-shorten",
     "keywords": [
         "truncation",

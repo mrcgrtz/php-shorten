@@ -1,6 +1,6 @@
 # Shorten
 
-> Provides additional truncation functions in PHP.
+> Safely truncate HTML markup while preserving tags, handling entities, and supporting Unicode/emoji with optional word-safe truncation.
 
 [![Test](https://github.com/mrcgrtz/php-shorten/actions/workflows/test.yml/badge.svg)](https://github.com/mrcgrtz/php-shorten/actions/workflows/test.yml)
 [![Coverage Status](https://coveralls.io/repos/github/mrcgrtz/php-shorten/badge.svg?branch=main)](https://coveralls.io/github/mrcgrtz/php-shorten?branch=main)
