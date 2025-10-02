@@ -112,7 +112,10 @@ final class ShortenTest extends TestCase
             '<a href="https://example.com?param=value&other=test" title="Link\'s title">Link text here</a>',
             8
         );
-        $this->assertEquals('<a href="https://example.com?param=value&other=test" title="Link\'s title">Link tex</a>…', $result);
+        $this->assertEquals(
+            '<a href="https://example.com?param=value&other=test" title="Link\'s title">Link tex</a>…',
+            $result
+        );
     }
 
     public function testTagsOnly(): void
@@ -288,7 +291,9 @@ final class ShortenTest extends TestCase
         $this->assertEquals('<p>Hello &amp; 世界 🌍 <strong>bo⋯</strong></p>', $result);
 
         // Real-world complex example
-        $markup = '<article><h2>Title éléphant 🐘</h2><p>Paragraph with <a href="#">link &amp; more</a> content.</p></article>';
+        $markup =
+            '<article><h2>Title éléphant 🐘</h2>' .
+            '<p>Paragraph with <a href="#">link &amp; more</a> content.</p></article>';
         $result = $this->shorten->truncateMarkup($markup, 20, '…', false, true);
         $this->assertEquals('<article><h2>Title &eacute;l&eacute;phant</h2></article>…', $result);
     }
