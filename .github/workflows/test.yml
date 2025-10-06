@@ -25,6 +25,8 @@ jobs:
       with:
         php-version: ${{ matrix.php-versions }}
         coverage: xdebug
+        extensions: intl, mbstring
+        tools: composer:v2
 
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
