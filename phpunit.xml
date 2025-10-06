@@ -12,7 +12,12 @@
     </testsuites>
     <source>
         <include>
-            <directory>./</directory>
+            <file>./Shorten.php</file>
         </include>
+        <exclude>
+            <directory>./vendor/</directory>
+            <directory>./tests/</directory>
+            <directory>./.git/</directory>
+        </exclude>
     </source>
 </phpunit>
