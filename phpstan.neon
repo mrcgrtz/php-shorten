@@ -1,0 +1,12 @@
+parameters:
+    level: max
+    paths:
+        - Shorten.php
+        - tests/
+
+    # Exclude vendor directory
+    excludePaths:
+        - vendor/
+
+    # Configure PHP version
+    phpVersion: 80200

@@ -33,6 +33,7 @@
         "psr-4": {"Marcgoertz\\Shorten\\": "tests/"}
     },
     "scripts": {
+        "analyze": "phpstan analyse",
         "fix": "php-cs-fixer fix",
         "lint": "phplint",
         "test": "phpunit"
@@ -43,8 +44,9 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.86.0",
+        "overtrue/phplint": "^9.6.0",
+        "phpstan/phpstan": "^2.0.0",
         "phpunit/phpunit": "^11.3.1",
-        "php-coveralls/php-coveralls": "^2.4.3",
-        "overtrue/phplint": "^9.6.0"
+        "php-coveralls/php-coveralls": "^2.4.3"
     }
 }

@@ -43,6 +43,9 @@ jobs:
     - name: Lint code with PHPLint
       run: composer run-script lint
 
+    - name: Analyze code with PHPStan
+      run: composer run-script analyze
+
     - name: Run test suite
       run: composer run-script test
 

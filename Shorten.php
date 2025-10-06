@@ -93,7 +93,9 @@ final class Shorten
      */
     private function getStringLength(string $string): int
     {
-        return extension_loaded('intl') ? grapheme_strlen($string) : mb_strlen($string);
+        $length = extension_loaded('intl') ? grapheme_strlen($string) : mb_strlen($string);
+
+        return false === $length || null === $length ? 0 : $length;
     }
 
     /**
@@ -115,7 +117,7 @@ final class Shorten
 
         $result = null !== $length ? mb_substr($string, $start, $length) : mb_substr($string, $start);
 
-        return false !== $result ? $result : '';
+        return $result ?: '';
     }
 
     /**
@@ -203,7 +205,7 @@ final class Shorten
         $zwjCounter = 0;
 
         // Find all ZWJ sequences and replace them temporarily
-        $markup = preg_replace_callback('/[\x{200D}]/u', function ($match) use (&$zwjPlaceholders, &$zwjCounter) {
+        $processedMarkup = preg_replace_callback('/[\x{200D}]/u', function ($match) use (&$zwjPlaceholders, &$zwjCounter) {
             $placeholder = "___ZWJ_{$zwjCounter}___";
             $zwjPlaceholders[$placeholder] = $match[0];
             ++$zwjCounter;
@@ -211,11 +213,14 @@ final class Shorten
             return $placeholder;
         }, $markup);
 
+        // Ensure preg_replace_callback didn't fail
+        $safeMarkup = null === $processedMarkup ? $markup : $processedMarkup;
+
         // Apply the original normalization
         $normalized = str_replace(
             ['&lt;', '&gt;', '&amp;'],
             ['<', '>', '&'],
-            htmlentities($markup, ENT_NOQUOTES, 'UTF-8')
+            htmlentities($safeMarkup, ENT_NOQUOTES, 'UTF-8')
         );
 
         // Restore ZWJ characters
@@ -264,13 +269,13 @@ final class Shorten
 
             $result = $this->processTagOrEntity($tag, $match, $tags, $positionTag);
             if ($result['skip']) {
-                $position = $result['newPosition'];
+                $position = $result['newPosition'] ?? $position;
 
                 continue;
             }
 
             $truncated .= $tag;
-            if ($result['incrementLength']) {
+            if ($result['incrementLength'] ?? false) {
                 ++$lengthOutput;
             }
 
@@ -427,6 +432,10 @@ final class Shorten
     {
         $lastOpenBracket = mb_strrpos($truncated, '<');
 
+        if (false === $lastOpenBracket) {
+            return $truncated;
+        }
+
         return rtrim(mb_substr($truncated, 0, $lastOpenBracket));
     }
 
@@ -454,7 +463,7 @@ final class Shorten
             [$tag, $positionTag] = $match[0];
 
             if ('&' !== $tag[0]) {
-                $tagName = $match[1][0];
+                $tagName = $match[1][0] ?? '';
                 if (mb_strlen($tag) > 1 && '/' === $tag[1]) {
                     // Closing tag - only pop if it matches the last opened tag
                     $openingTag = array_pop($tags);
