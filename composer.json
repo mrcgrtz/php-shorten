@@ -33,8 +33,8 @@
         "psr-4": {"Marcgoertz\\Shorten\\": "tests/"}
     },
     "scripts": {
-        "fix": "phpcbf --ignore=vendor .",
-        "lint": "phpcs --ignore=vendor --no-cache .",
+        "fix": "php-cs-fixer fix",
+        "lint": "phplint",
         "test": "phpunit"
     },
     "minimum-stability": "stable",
@@ -42,8 +42,9 @@
         "php": ">=8.2"
     },
     "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.86.0",
         "phpunit/phpunit": "^11.3.1",
-        "squizlabs/php_codesniffer": "^4.0.0",
-        "php-coveralls/php-coveralls": "^2.4.3"
+        "php-coveralls/php-coveralls": "^2.4.3",
+        "overtrue/phplint": "^9.6.0"
     }
 }

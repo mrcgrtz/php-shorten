@@ -40,6 +40,9 @@ jobs:
     - name: Install dependencies
       run: composer install --dev --prefer-dist --no-progress --no-interaction
 
+    - name: Lint code with PHPLint
+      run: composer run-script lint
+
     - name: Run test suite
       run: composer run-script test
 

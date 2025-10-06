@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Marcgoertz\Shorten;
 
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
-use Marcgoertz\Shorten\Shorten;
 
+/**
+ * @internal
+ */
+#[CoversNothing]
 final class ShortenTest extends TestCase
 {
     private Shorten $shorten;
@@ -250,11 +254,11 @@ final class ShortenTest extends TestCase
     {
         // Large content with many tags
         $largeTags = str_repeat('<span>word</span> ', 1000);
-        $result = $this->shorten->truncateMarkup("<div>$largeTags</div>", 50);
+        $result = $this->shorten->truncateMarkup("<div>{$largeTags}</div>", 50);
         $this->assertLessThan(250, mb_strlen($result));
 
         // Performance test
-        $largeText = '<p>' . str_repeat('Lorem ipsum dolor sit amet. ', 500) . '</p>';
+        $largeText = '<p>'.str_repeat('Lorem ipsum dolor sit amet. ', 500).'</p>';
         $start = microtime(true);
         $result = $this->shorten->truncateMarkup($largeText, 100);
         $end = microtime(true);
@@ -264,7 +268,7 @@ final class ShortenTest extends TestCase
 
     public function testVeryLongContent(): void
     {
-        $longText = '<p>' . str_repeat('Lorem ipsum dolor sit amet ', 100) . '</p>';
+        $longText = '<p>'.str_repeat('Lorem ipsum dolor sit amet ', 100).'</p>';
         $result = $this->shorten->truncateMarkup($longText, 50);
         $this->assertLessThan(mb_strlen($longText), mb_strlen($result));
         $this->assertStringEndsWith('…', strip_tags($result));
@@ -291,9 +295,9 @@ final class ShortenTest extends TestCase
         $this->assertEquals('<p>Hello &amp; 世界 🌍 <strong>bo⋯</strong></p>', $result);
 
         // Real-world complex example
-        $markup =
-            '<article><h2>Title éléphant 🐘</h2>' .
-            '<p>Paragraph with <a href="#">link &amp; more</a> content.</p></article>';
+        $markup
+            = '<article><h2>Title éléphant 🐘</h2>'
+            .'<p>Paragraph with <a href="#">link &amp; more</a> content.</p></article>';
         $result = $this->shorten->truncateMarkup($markup, 20, '…', false, true);
         $this->assertEquals('<article><h2>Title &eacute;l&eacute;phant</h2></article>…', $result);
     }

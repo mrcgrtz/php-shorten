@@ -1,0 +1,4 @@
+path: ./
+exclude:
+    - vendor
+warning: true

@@ -36,15 +36,15 @@ final class Shorten
     /**
      * Safely truncate text containing markup.
      *
-     * @param string $markup         text containing markup
-     * @param int    $length         maximum length of truncated text
-     * @param string $appendix       text added after truncated text
-     * @param bool   $appendixInside add appendix to last content in tags,
+     * @param string $markup         Text containing markup
+     * @param int    $length         Maximum length of truncated text
+     * @param string $appendix       Text added after truncated text
+     * @param bool   $appendixInside Add appendix to last content in tags,
      *                               increases $length by 1
-     * @param bool   $wordsafe       wordsafe truncation
-     * @param string $delimiter      delimiter for wordsafe truncation
+     * @param bool   $wordsafe       Wordsafe truncation
+     * @param string $delimiter      Delimiter for wordsafe truncation
      *
-     * @return string                truncated markup
+     * @return string Truncated markup
      */
     public function truncateMarkup(
         string $markup,
@@ -88,6 +88,7 @@ final class Shorten
      * Get the length of a string, using grapheme_strlen if available for proper emoji support.
      *
      * @param string $string The string to measure
+     *
      * @return int The length of the string in grapheme units
      */
     private function getStringLength(string $string): int
@@ -98,28 +99,32 @@ final class Shorten
     /**
      * Get a substring, using grapheme_substr if available for proper emoji support.
      *
-     * @param string $string The input string
-     * @param int $start The start position
-     * @param int|null $length The maximum length (null for no limit)
+     * @param string   $string The input string
+     * @param int      $start  The start position
+     * @param null|int $length The maximum length (null for no limit)
+     *
      * @return string The substring
      */
     private function getSubstring(string $string, int $start, ?int $length = null): string
     {
         if (extension_loaded('intl')) {
-            $result = $length !== null ? grapheme_substr($string, $start, $length) : grapheme_substr($string, $start);
-            return $result !== false ? $result : '';
+            $result = null !== $length ? grapheme_substr($string, $start, $length) : grapheme_substr($string, $start);
+
+            return false !== $result ? $result : '';
         }
 
-        $result = $length !== null ? mb_substr($string, $start, $length) : mb_substr($string, $start);
-        return $result !== false ? $result : '';
+        $result = null !== $length ? mb_substr($string, $start, $length) : mb_substr($string, $start);
+
+        return false !== $result ? $result : '';
     }
 
     /**
      * Validate input parameters.
      *
-     * @param int &$length Reference to length parameter (will be modified if negative)
-     * @param bool $wordsafe Whether wordsafe truncation is enabled
+     * @param int    &$length   Reference to length parameter (will be modified if negative)
+     * @param bool   $wordsafe  Whether wordsafe truncation is enabled
      * @param string $delimiter Delimiter for wordsafe truncation
+     *
      * @throws \InvalidArgumentException When delimiter is empty for wordsafe truncation
      */
     private function validateParameters(int &$length, bool $wordsafe, string $delimiter): void
@@ -128,7 +133,7 @@ final class Shorten
             $length = 0;
         }
 
-        if ($wordsafe && $delimiter === '') {
+        if ($wordsafe && '' === $delimiter) {
             throw new \InvalidArgumentException('Delimiter cannot be empty for wordsafe truncation');
         }
     }
@@ -137,21 +142,23 @@ final class Shorten
      * Check if we should return early without processing.
      *
      * @param string $markup The input markup
-     * @param int $length The target length
+     * @param int    $length The target length
+     *
      * @return bool True if should return early
      */
     private function shouldReturnEarly(string $markup, int $length): bool
     {
-        return trim($markup) === '' || $length === 0;
+        return '' === trim($markup) || 0 === $length;
     }
 
     /**
      * Handle early return cases.
      *
-     * @param string $markup The input markup
-     * @param int $length The target length
-     * @param string $appendix The appendix to add
-     * @param bool $appendixInside Whether to place appendix inside tags
+     * @param string $markup         The input markup
+     * @param int    $length         The target length
+     * @param string $appendix       The appendix to add
+     * @param bool   $appendixInside Whether to place appendix inside tags
+     *
      * @return string The result for early return
      */
     private function handleEarlyReturn(
@@ -160,7 +167,7 @@ final class Shorten
         string $appendix,
         bool $appendixInside
     ): string {
-        if (trim($markup) === '') {
+        if ('' === trim($markup)) {
             return $markup;
         }
 
@@ -171,12 +178,14 @@ final class Shorten
      * Check if markup is short enough and does not need truncation.
      *
      * @param string $markup The markup to check
-     * @param int $length The maximum allowed length
+     * @param int    $length The maximum allowed length
+     *
      * @return bool True if markup is short enough
      */
     private function isMarkupShortEnough(string $markup, int $length): bool
     {
         $plainTextLength = $this->getStringLength(trim(strip_tags($markup)));
+
         return $plainTextLength <= $length;
     }
 
@@ -184,6 +193,7 @@ final class Shorten
      * Normalize markup for processing.
      *
      * @param string $markup The original markup
+     *
      * @return string The normalized markup with preserved emoji sequences
      */
     private function normalizeMarkup(string $markup): string
@@ -196,7 +206,8 @@ final class Shorten
         $markup = preg_replace_callback('/[\x{200D}]/u', function ($match) use (&$zwjPlaceholders, &$zwjCounter) {
             $placeholder = "___ZWJ_{$zwjCounter}___";
             $zwjPlaceholders[$placeholder] = $match[0];
-            $zwjCounter++;
+            ++$zwjCounter;
+
             return $placeholder;
         }, $markup);
 
@@ -208,16 +219,15 @@ final class Shorten
         );
 
         // Restore ZWJ characters
-        $normalized = str_replace(array_keys($zwjPlaceholders), array_values($zwjPlaceholders), $normalized);
-
-        return $normalized;
+        return str_replace(array_keys($zwjPlaceholders), array_values($zwjPlaceholders), $normalized);
     }
 
     /**
      * Perform the main truncation logic.
      *
      * @param string $markup The normalized markup to truncate
-     * @param int $length The maximum length
+     * @param int    $length The maximum length
+     *
      * @return array{text: string, tags: string[]} Array containing truncated text and open tags
      */
     private function performTruncation(string $markup, int $length): array
@@ -230,8 +240,8 @@ final class Shorten
 
         // loop through text
         while (
-            $lengthOutput < $length &&
-            preg_match(
+            $lengthOutput < $length
+            && preg_match(
                 self::TAGS_AND_ENTITIES_PATTERN,
                 $markup,
                 $match,
@@ -239,13 +249,14 @@ final class Shorten
                 $position
             )
         ) {
-            list($tag, $positionTag) = $match[0];
+            [$tag, $positionTag] = $match[0];
 
             // add text leading up to the tag or entity
             $text = substr($markup, $position, $positionTag - $position);
             if ($lengthOutput + $this->getStringLength($text) > $length) {
                 $truncated .= $this->getSubstring($text, 0, $length - $lengthOutput);
                 $lengthOutput = $length;
+
                 break;
             }
             $truncated .= $text;
@@ -254,12 +265,13 @@ final class Shorten
             $result = $this->processTagOrEntity($tag, $match, $tags, $positionTag);
             if ($result['skip']) {
                 $position = $result['newPosition'];
+
                 continue;
             }
 
             $truncated .= $tag;
             if ($result['incrementLength']) {
-                $lengthOutput++;
+                ++$lengthOutput;
             }
 
             // continue after the tag
@@ -278,15 +290,16 @@ final class Shorten
     /**
      * Process a single tag or entity.
      *
-     * @param string $tag The tag or entity to process
-     * @param array<int, array{0: string, 1: int}> $match Regex match result from preg_match
-     * @param string[] &$tags Reference to the stack of open tags
-     * @param int $positionTag Position of the tag in the markup
+     * @param string                               $tag         The tag or entity to process
+     * @param array<int, array{0: string, 1: int}> $match       Regex match result from preg_match
+     * @param string[]                             &$tags       Reference to the stack of open tags
+     * @param int                                  $positionTag Position of the tag in the markup
+     *
      * @return array{skip: bool, incrementLength?: bool, newPosition?: int} Processing result
      */
     private function processTagOrEntity(string $tag, array $match, array &$tags, int $positionTag): array
     {
-        if ($tag[0] === '&') {
+        if ('&' === $tag[0]) {
             // handle the entity (counts as one character)
             return ['skip' => false, 'incrementLength' => true];
         }
@@ -294,7 +307,7 @@ final class Shorten
         // handle the tag
         $tagName = $match[1][0];
 
-        if ($tag[1] === '/') {
+        if ('/' === $tag[1]) {
             return $this->handleClosingTag($tagName, $tags, $tag, $positionTag);
         }
 
@@ -304,16 +317,18 @@ final class Shorten
 
         // opening tag
         $tags[] = $tagName;
+
         return ['skip' => false, 'incrementLength' => false];
     }
 
     /**
      * Handle closing tag processing.
      *
-     * @param string $tagName The name of the closing tag
-     * @param string[] &$tags Reference to the stack of open tags
-     * @param string $tag The complete tag string
-     * @param int $positionTag Position of the tag in the markup
+     * @param string   $tagName     The name of the closing tag
+     * @param string[] &$tags       Reference to the stack of open tags
+     * @param string   $tag         The complete tag string
+     * @param int      $positionTag Position of the tag in the markup
+     *
      * @return array{skip: bool, incrementLength?: bool, newPosition?: int} Processing result
      */
     private function handleClosingTag(string $tagName, array &$tags, string $tag, int $positionTag): array
@@ -323,9 +338,10 @@ final class Shorten
         // check that tags are properly nested
         if ($openingTag !== $tagName) {
             // Malformed HTML - attempt to recover by ignoring the mismatched closing tag
-            if ($openingTag !== null) {
+            if (null !== $openingTag) {
                 $tags[] = $openingTag;
             }
+
             // Skip this malformed closing tag
             return ['skip' => true, 'newPosition' => $positionTag + mb_strlen($tag)];
         }
@@ -336,14 +352,15 @@ final class Shorten
     /**
      * Check if a tag is self-closing.
      *
-     * @param string $tag The complete tag string
+     * @param string $tag     The complete tag string
      * @param string $tagName The tag name
+     *
      * @return bool True if the tag is self-closing
      */
     private function isSelfClosingTag(string $tag, string $tagName): bool
     {
         // self-closing tag in XML dialect
-        if ($tag[mb_strlen($tag) - 2] === '/') {
+        if ('/' === $tag[mb_strlen($tag) - 2]) {
             return true;
         }
 
@@ -355,7 +372,8 @@ final class Shorten
      * Apply wordsafe truncation logic.
      *
      * @param array{text: string, tags: string[]} $truncationResult Result from performTruncation
-     * @param string $delimiter Delimiter for word boundaries
+     * @param string                              $delimiter        Delimiter for word boundaries
+     *
      * @return array{text: string, tags: string[]} Updated truncation result
      */
     private function applyWordsafeTruncation(array $truncationResult, string $delimiter): array
@@ -364,7 +382,7 @@ final class Shorten
         $tags = $truncationResult['tags'];
 
         $delimiterPosition = mb_strrpos($truncated, $delimiter);
-        if ($delimiterPosition === false) {
+        if (false === $delimiterPosition) {
             return $truncationResult;
         }
 
@@ -386,6 +404,7 @@ final class Shorten
      * Check if truncated text has incomplete tags.
      *
      * @param string $truncated The truncated text to check
+     *
      * @return bool True if there are incomplete tags
      */
     private function hasIncompleteTag(string $truncated): bool
@@ -393,19 +412,21 @@ final class Shorten
         $lastOpenBracket = mb_strrpos($truncated, '<');
         $lastCloseBracket = mb_strrpos($truncated, '>');
 
-        return $lastOpenBracket !== false &&
-               ($lastCloseBracket === false || $lastOpenBracket > $lastCloseBracket);
+        return false !== $lastOpenBracket
+               && (false === $lastCloseBracket || $lastOpenBracket > $lastCloseBracket);
     }
 
     /**
      * Remove incomplete tag from truncated text.
      *
      * @param string $truncated The text with incomplete tag
+     *
      * @return string The text with incomplete tag removed
      */
     private function removeIncompleteTag(string $truncated): string
     {
         $lastOpenBracket = mb_strrpos($truncated, '<');
+
         return rtrim(mb_substr($truncated, 0, $lastOpenBracket));
     }
 
@@ -413,6 +434,7 @@ final class Shorten
      * Recalculate which tags are still open after wordsafe truncation.
      *
      * @param string $truncated The truncated text to analyze
+     *
      * @return string[] Array of tag names that are still open
      */
     private function recalculateOpenTags(string $truncated): array
@@ -429,14 +451,14 @@ final class Shorten
                 $tempPosition
             )
         ) {
-            list($tag, $positionTag) = $match[0];
+            [$tag, $positionTag] = $match[0];
 
-            if ($tag[0] !== '&') {
+            if ('&' !== $tag[0]) {
                 $tagName = $match[1][0];
-                if (mb_strlen($tag) > 1 && $tag[1] === '/') {
+                if (mb_strlen($tag) > 1 && '/' === $tag[1]) {
                     // Closing tag - only pop if it matches the last opened tag
                     $openingTag = array_pop($tags);
-                    if ($openingTag !== $tagName && $openingTag !== null) {
+                    if ($openingTag !== $tagName && null !== $openingTag) {
                         // Tags do not match - push the opening tag back
                         $tags[] = $openingTag;
                     }
@@ -456,9 +478,10 @@ final class Shorten
      * Finalize truncation by adding appendix and closing tags.
      *
      * @param array{text: string, tags: string[]} $truncationResult Result from truncation
-     * @param string $appendix The appendix text to add
-     * @param bool $appendixInside Whether to place appendix inside tags
-     * @param bool $hasEntities Whether the original markup contained HTML entities
+     * @param string                              $appendix         The appendix text to add
+     * @param bool                                $appendixInside   Whether to place appendix inside tags
+     * @param bool                                $hasEntities      Whether the original markup contained HTML entities
+     *
      * @return string The final truncated markup
      */
     private function finalizeTruncation(
@@ -485,6 +508,6 @@ final class Shorten
             $truncated = html_entity_decode($truncated, ENT_COMPAT, 'UTF-8');
         }
 
-        return $appendixInside ? $truncated : $truncated . $appendix;
+        return $appendixInside ? $truncated : $truncated.$appendix;
     }
 }

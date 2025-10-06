@@ -1,6 +1,9 @@
 <?php
+
+use Marcgoertz\Shorten\Shorten;
+
 require_once 'Shorten.php';
-$shorten = new \Marcgoertz\Shorten\Shorten();
+$shorten = new Shorten();
 ?>
 <!doctype html>
 <meta charset=utf-8>
@@ -8,23 +11,23 @@ $shorten = new \Marcgoertz\Shorten\Shorten();
 <p>
     <?php
         // provides: <a href="https://example.com/">Go to exam</a>…
-        print $shorten->truncateMarkup('<a href="https://example.com/">Go to example site</a>', 10);
-    ?>
+        echo $shorten->truncateMarkup('<a href="https://example.com/">Go to example site</a>', 10);
+?>
 
 <p>
     <?php
-        // provides: <a href="https://example.com/">Go to</a>…
-        print $shorten->truncateMarkup('<a href="https://example.com/">Go to example site</a>', 10, '…', false, true);
-    ?>
+    // provides: <a href="https://example.com/">Go to</a>…
+    echo $shorten->truncateMarkup('<a href="https://example.com/">Go to example site</a>', 10, '…', false, true);
+?>
 
 <p>
     <?php
-        // provides: <a href="https://example.com/">Go to…</a>
-        print $shorten->truncateMarkup('<a href="https://example.com/">Go to example site</a>', 10, '…', true, true);
-    ?>
+    // provides: <a href="https://example.com/">Go to…</a>
+    echo $shorten->truncateMarkup('<a href="https://example.com/">Go to example site</a>', 10, '…', true, true);
+?>
 
 <p>
     <?php
-        // provides: Lorem ipsum <b>dolor</b> sit amet
-        print $shorten->truncateMarkup('Lorem ipsum <b>dolor</b> sit amet', 26);
-    ?>
+    // provides: Lorem ipsum <b>dolor</b> sit amet
+    echo $shorten->truncateMarkup('Lorem ipsum <b>dolor</b> sit amet', 26);
+?>
