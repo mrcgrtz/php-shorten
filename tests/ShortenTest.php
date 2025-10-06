@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Marcgoertz\Shorten;
 
-use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
  */
-#[CoversNothing]
+#[CoversClass(Shorten::class)]
 final class ShortenTest extends TestCase
 {
     private Shorten $shorten;
