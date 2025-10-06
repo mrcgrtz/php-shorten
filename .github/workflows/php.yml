@@ -70,25 +70,26 @@ jobs:
             - name: Run test suite
               run: composer run-script test
 
+            - name: Upload coverage artifact
+              if: matrix.php-versions == '8.2'
+              uses: actions/upload-artifact@v4
+              with:
+                  name: coverage-report
+                  path: build/logs/clover.xml
+                  retention-days: 1
+
     coverage:
-        needs: [lint, analyze, test]
+        needs: test
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         runs-on: ubuntu-latest
-        timeout-minutes: 10
+        timeout-minutes: 5
 
         steps:
-            - name: Checkout
-              uses: actions/checkout@v5
-
-            - name: Setup PHP Project
-              uses: ./.github/actions/setup-php-project
+            - name: Download coverage artifact
+              uses: actions/download-artifact@v4
               with:
-                  php-version: '8.2'
-                  coverage: 'true'
-                  cache-suffix: 'coverage'
-
-            - name: Run test suite with coverage
-              run: composer run-script test
+                  name: coverage-report
+                  path: build/logs/
 
             - name: Upload coverage results to Coveralls
               uses: coverallsapp/github-action@v2
