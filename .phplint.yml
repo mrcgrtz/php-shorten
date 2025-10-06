@@ -1,4 +1,8 @@
 path: ./
 exclude:
-    - vendor
-warning: true
+    - vendor/
+    - .git/
+extensions:
+    - php
+warning: false
+jobs: 10
