@@ -1,0 +1,46 @@
+name: Setup PHP Project
+description: Setup PHP environment and install dependencies
+
+inputs:
+    php-version:
+        description: PHP version to setup
+        required: true
+        default: '8.2'
+    cache-suffix:
+        description: Suffix for cache key
+        required: false
+        default: 'default'
+    coverage:
+        description: Enable coverage (Xdebug)
+        required: false
+        default: 'false'
+
+runs:
+    using: 'composite'
+    steps:
+        - name: Setup PHP
+          uses: shivammathur/setup-php@v2
+          with:
+              php-version: ${{ inputs.php-version }}
+              coverage: ${{ inputs.coverage == 'true' && 'xdebug' || 'none' }}
+              extensions: intl, mbstring
+              tools: composer:v2
+              ini-values: memory_limit=1G
+
+        - name: Get Composer cache directory
+          id: composer-cache-dir
+          run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+          shell: bash
+
+        - name: Cache Composer packages
+          uses: actions/cache@v4
+          with:
+              path: ${{ steps.composer-cache-dir.outputs.dir }}
+              key: ${{ runner.os }}-composer-${{ inputs.cache-suffix }}-${{ hashFiles('**/composer.lock') }}
+              restore-keys: |
+                  ${{ runner.os }}-composer-${{ inputs.cache-suffix }}-
+                  ${{ runner.os }}-composer-
+
+        - name: Install dependencies
+          run: composer install --prefer-dist --no-progress --no-interaction
+          shell: bash

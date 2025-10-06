@@ -1,65 +1,97 @@
 name: Test
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    push:
+        branches: [ main ]
+    pull_request:
+        branches: [ main ]
+
+permissions:
+    contents: read
 
 jobs:
-  test:
+    lint:
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
 
-    strategy:
-      matrix:
-        php-versions: ['8.2', '8.3', '8.4']
-      fail-fast: false
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v5
 
-    runs-on: ubuntu-latest
+            - name: Setup PHP Project
+              uses: ./.github/actions/setup-php-project
+              with:
+                  php-version: '8.2'
+                  cache-suffix: 'lint'
 
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v5
+            - name: Validate composer.json and composer.lock
+              run: composer validate --strict
 
-    - name: Setup PHP with Xdebug
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: ${{ matrix.php-versions }}
-        coverage: xdebug
-        extensions: intl, mbstring
-        tools: composer:v2
+            - name: Lint code with PHPLint
+              run: composer run-script lint
 
-    - name: Get Composer cache directory
-      id: composer-cache-dir
-      run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+    analyze:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
 
-    - name: Cache Composer packages
-      id: composer-cache
-      uses: actions/cache@v4
-      with:
-        path: ${{ steps.composer-cache-dir.outputs.dir }}
-        key: ${{ runner.os }}-composer-${{ matrix.php-versions }}-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-composer-${{ matrix.php-versions }}-
-          ${{ runner.os }}-composer-
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v5
 
-    - name: Validate composer.json and composer.lock
-      run: composer validate --strict
+            - name: Setup PHP Project
+              uses: ./.github/actions/setup-php-project
+              with:
+                  php-version: '8.2'
+                  cache-suffix: 'analyze'
 
-    - name: Install dependencies
-      run: composer install --prefer-dist --no-progress --no-interaction
+            - name: Analyze code with PHPStan
+              run: composer run-script analyze
 
-    - name: Lint code with PHPLint
-      run: composer run-script lint
+    test:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
 
-    - name: Analyze code with PHPStan
-      run: composer run-script analyze
+        strategy:
+            matrix:
+                php-versions: ['8.2', '8.3', '8.4']
+            fail-fast: false
 
-    - name: Run test suite
-      run: composer run-script test
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v5
 
-    - name: Upload coverage results to Coveralls
-      if: matrix.php-versions == '8.2' && github.event_name == 'push'
-      env:
-        COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: php vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
-      continue-on-error: true
+            - name: Setup PHP Project
+              uses: ./.github/actions/setup-php-project
+              with:
+                  php-version: ${{ matrix.php-versions }}
+                  coverage: 'true'
+                  cache-suffix: ${{ matrix.php-versions }}
+
+            - name: Run test suite
+              run: composer run-script test
+
+    coverage:
+        needs: [lint, analyze, test]
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v5
+
+            - name: Setup PHP Project
+              uses: ./.github/actions/setup-php-project
+              with:
+                  php-version: '8.2'
+                  coverage: 'true'
+                  cache-suffix: 'coverage'
+
+            - name: Run test suite with coverage
+              run: composer run-script test
+
+            - name: Upload coverage results to Coveralls
+              uses: coverallsapp/github-action@v2
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  file: build/logs/clover.xml
