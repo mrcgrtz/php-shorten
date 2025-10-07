@@ -86,7 +86,7 @@ jobs:
 
         steps:
             - name: Download coverage artifact
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v5
               with:
                   name: coverage-report
                   path: build/logs/
