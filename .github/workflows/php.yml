@@ -16,7 +16,7 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
 
             - name: Setup PHP Project
               uses: ./.github/actions/setup-php-project
@@ -36,7 +36,7 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
 
             - name: Setup PHP Project
               uses: ./.github/actions/setup-php-project
@@ -58,7 +58,7 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
 
             - name: Setup PHP Project
               uses: ./.github/actions/setup-php-project
