@@ -72,7 +72,7 @@ jobs:
 
             - name: Upload coverage artifact
               if: matrix.php-versions == '8.2'
-              uses: actions/upload-artifact@v5
+              uses: actions/upload-artifact@v6
               with:
                   name: coverage-report
                   path: build/logs/clover.xml
