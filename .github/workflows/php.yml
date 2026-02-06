@@ -16,7 +16,7 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
 
             - name: Setup PHP Project
               uses: ./.github/actions/setup-php-project
@@ -36,7 +36,7 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
 
             - name: Setup PHP Project
               uses: ./.github/actions/setup-php-project
@@ -58,7 +58,7 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
 
             - name: Setup PHP Project
               uses: ./.github/actions/setup-php-project
@@ -72,7 +72,7 @@ jobs:
 
             - name: Upload coverage artifact
               if: matrix.php-versions == '8.2'
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v6
               with:
                   name: coverage-report
                   path: build/logs/clover.xml
@@ -86,7 +86,7 @@ jobs:
 
         steps:
             - name: Download coverage artifact
-              uses: actions/download-artifact@v5
+              uses: actions/download-artifact@v7
               with:
                   name: coverage-report
                   path: build/logs/
