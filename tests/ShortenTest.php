@@ -319,4 +319,15 @@ final class ShortenTest extends TestCase
         $result = $this->shorten->truncateMarkup($markup, 12, '...', true, true);
         $this->assertEquals('<div><p><strong>Word1 Word2</strong>...</p></div>', $result);
     }
+
+    public function testPercentage(): void
+    {
+        $markup = '<a href="#foo"><b>Lorem ipsum</b> dolor sit amet</a>';
+        $text = strip_tags($markup);
+        $textLength = mb_strlen($text);
+        $percentage = 25;
+        $maxLength = (int) round($percentage * $textLength / 100);
+        $result = $this->shorten->truncateMarkup($markup, $maxLength);
+        $this->assertEquals('<a href="#foo"><b>Lorem i</b></a>…', $result);
+    }
 }
