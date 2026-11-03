@@ -21,7 +21,7 @@ jobs:
             - name: Setup PHP Project
               uses: ./.github/actions/setup-php-project
               with:
-                  php-version: '8.2'
+                  php-version: '8.4'
                   cache-suffix: 'lint'
 
             - name: Validate composer.json and composer.lock
@@ -41,7 +41,7 @@ jobs:
             - name: Setup PHP Project
               uses: ./.github/actions/setup-php-project
               with:
-                  php-version: '8.2'
+                  php-version: '8.4'
                   cache-suffix: 'analyze'
 
             - name: Analyze code with PHPStan
@@ -53,7 +53,7 @@ jobs:
 
         strategy:
             matrix:
-                php-versions: ['8.2', '8.3', '8.4']
+                php-versions: ['8.4', '8.5']
             fail-fast: false
 
         steps:
@@ -71,7 +71,7 @@ jobs:
               run: composer run-script test
 
             - name: Upload coverage artifact
-              if: matrix.php-versions == '8.2'
+              if: matrix.php-versions == '8.4'
               uses: actions/upload-artifact@v7
               with:
                   name: coverage-report
