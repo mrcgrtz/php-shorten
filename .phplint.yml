@@ -2,7 +2,7 @@ path: ./
 exclude:
     - vendor/
     - .git/
-extensions:
+file-extensions:
     - php
 warning: false
 jobs: 10

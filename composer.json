@@ -35,7 +35,7 @@
     "scripts": {
         "analyze": "phpstan analyse",
         "fix": "php-cs-fixer fix",
-        "lint": "phplint",
+        "lint": "phplint lint",
         "test": "phpunit"
     },
     "minimum-stability": "stable",
