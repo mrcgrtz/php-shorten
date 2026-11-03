@@ -5,7 +5,7 @@ inputs:
     php-version:
         description: PHP version to setup
         required: true
-        default: '8.2'
+        default: '8.4'
     cache-suffix:
         description: Suffix for cache key
         required: false
